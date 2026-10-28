@@ -41,6 +41,7 @@ class User extends Authenticatable
         'blocked_until',
         'blocked_reason',
         'interests',
+        'requires_message_request',
 
         'alumni_id',
         'student_id',
@@ -88,6 +89,7 @@ class User extends Authenticatable
             'is_blocked'                 => 'boolean',
             'blocked_until'              => 'datetime',
             'interests'                  => 'array',
+            'requires_message_request' => 'boolean',
             'is_owner'                   => 'boolean',
             'alumni_since'               => 'datetime',
             'converted_from_student_at'  => 'datetime',
@@ -106,24 +108,24 @@ class User extends Authenticatable
             return false;
         }
         if ((int) $this->id === (int) $otherUser->id) return false;
-        // An existing conversation remains available after mentorship ends.
-        if (Message::where(function ($query) use ($otherUser) {
-            $query->where('sender_id', $this->id)->where('recipient_id', $otherUser->id);
-        })->orWhere(function ($query) use ($otherUser) {
-            $query->where('sender_id', $otherUser->id)->where('recipient_id', $this->id);
-        })->exists()) return true;
-        if ($this->role === 'student' && $otherUser->role === 'alumni') {
-            $studentId = $this->id;
-            $mentorId = $otherUser->id;
-        } elseif ($this->role === 'alumni' && $otherUser->role === 'student') {
-            $studentId = $otherUser->id;
-            $mentorId = $this->id;
-        } else {
-            return false;
-        }
+        if (!in_array($this->role, ['student', 'alumni'], true) || !in_array($otherUser->role, ['student', 'alumni'], true)) return false;
+        if ($this->role === 'student' && $otherUser->role === 'student') return false;
+        if (Message::where(fn ($q) => $q->where('sender_id', $this->id)->where('recipient_id', $otherUser->id))
+            ->orWhere(fn ($q) => $q->where('sender_id', $otherUser->id)->where('recipient_id', $this->id))->exists()) return true;
+        if ($otherUser->role === 'alumni' && !($otherUser->requires_message_request ?? true)) return true;
+        return Mentorship::whereIn('status', ['accepted', 'completed'])->where(function ($q) use ($otherUser) {
+            $q->where(fn ($pair) => $pair->where('student_id', $this->id)->where('mentor_id', $otherUser->id))
+                ->orWhere(fn ($pair) => $pair->where('student_id', $otherUser->id)->where('mentor_id', $this->id));
+        })->exists();
+    }
 
-        return Mentorship::where('student_id', $studentId)->where('mentor_id', $mentorId)
-            ->whereIn('status', ['accepted', 'completed'])->exists();
+    public function releaseExpiredBlock(): void
+    {
+        if ($this->is_blocked && $this->blocked_until && $this->blocked_until->lte(now())) {
+            static::whereKey($this->id)->where('is_blocked', true)->whereNotNull('blocked_until')->where('blocked_until','<=',now())
+                ->update(['is_blocked'=>false, 'blocked_until'=>null, 'blocked_reason'=>null]);
+            $this->refresh();
+        }
     }
 
     public static function unblockExpiredAccounts(): int
@@ -284,12 +286,7 @@ public function currentWorkExperience()
         );
     }
 
-    public function aiSuggestions()
-    {
-        return $this->hasMany(
-            \App\Models\AISuggestion::class
-        );
-    }
+
 
     /*
     |--------------------------------------------------------------------------

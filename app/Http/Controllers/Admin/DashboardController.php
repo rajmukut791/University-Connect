@@ -48,36 +48,20 @@ class DashboardController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $recentUsers = User::query()
-            ->latest()
-            ->take(6)
-            ->get();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Recent Job Posts
-        |--------------------------------------------------------------------------
-        */
-
-        $recentJobs = Schema::hasTable('job_postings')
-            ? DB::table('job_postings')
-                ->latest()
-                ->take(5)
-                ->get()
-            : collect();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Dashboard View
-        |--------------------------------------------------------------------------
-        */
+        $countPending = fn (string $table) => Schema::hasTable($table)
+            ? DB::table($table)->where('status', 'pending')->count() : 0;
+        $pendingOverview = [
+            ['label'=>'Alumni Conversion', 'count'=>$countPending('alumni_conversion_requests'), 'url'=>route('alumni-conversion.index')],
+            ['label'=>'Job Approvals', 'count'=>$countPending('job_postings'), 'url'=>route('jobs.index', ['status'=>'pending'])],
+            ['label'=>'Campaign Approvals', 'count'=>$countPending('donations'), 'url'=>route('donations.index', ['status'=>'pending'])],
+        ];
+        foreach (['job'=>'Job', 'event'=>'Event', 'donation'=>'Donation'] as $type=>$label) {
+            $pendingOverview[] = ['label'=>$label.' Extensions', 'count'=>Schema::hasTable('post_extension_requests') ? DB::table('post_extension_requests')->where('status','pending')->where('post_type',$type)->count() : 0, 'url'=>route('posts.archive',['type'=>$type])];
+        }
 
         return view('admin.dashboard', compact(
             'stats',
-            'recentUsers',
-            'recentJobs'
+            'pendingOverview'
         ));
     }
 }

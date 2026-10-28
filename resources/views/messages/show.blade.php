@@ -8,8 +8,8 @@
 
         .chat-container {
             height: calc(100vh - 155px);
-            min-height: 620px;
-            max-height: 850px;
+            min-height: 0;
+            max-height: none;
         }
 
         .chat-scroll::-webkit-scrollbar {
@@ -99,7 +99,7 @@
 
             .chat-container {
                 height: calc(100vh - 110px);
-                min-height: 560px;
+                min-height: 0;
             }
 
             .chat-bubble {
@@ -127,7 +127,7 @@
     </style>
 
 
-    <div class="mx-auto max-w-5xl">
+    <div class="uc-messages-view uc-chat-view mx-auto max-w-5xl">
 
         <div
             class="
@@ -192,7 +192,7 @@
 
                     @if($user->profile_image)
 
-                        <img
+                        <a class="shrink-0" aria-label="View profile" href="{{ route($user->role === 'alumni' ? 'profiles.alumni.show' : 'profiles.student.show', $user) }}"><img
                             src="{{ $user->getProfileImageUrl() }}"
                             alt="{{ $user->name }}"
                             class="
@@ -202,7 +202,7 @@
                                 rounded-xl
                                 object-cover
                             "
-                        >
+                        ></a>
 
                     @else
 
@@ -233,7 +233,7 @@
                     <div class="min-w-0">
 
                         <h1 class="truncate font-black text-white">
-                            {{ $user->name }}
+                            <a href="{{ route($user->role === 'alumni' ? 'profiles.alumni.show' : 'profiles.student.show', $user) }}" class="hover:underline">{{ $user->name }}</a>
                         </h1>
 
                         <p
@@ -417,6 +417,12 @@
                 "
             >
 
+                @if($messagePages->hasPages())
+                    <nav class="flex flex-wrap justify-center gap-3 py-2 text-xs" aria-label="Conversation history">
+                        @if($messagePages->hasMorePages())<a class="rounded-lg bg-white/10 px-3 py-2 text-indigo-200" href="{{ $messagePages->nextPageUrl() }}">Older messages</a>@endif
+                        @if($messagePages->currentPage() > 1)<a class="rounded-lg bg-white/10 px-3 py-2 text-indigo-200" href="{{ $messagePages->previousPageUrl() }}">Newer messages</a><a class="rounded-lg bg-indigo-600 px-3 py-2 text-white" href="{{ route('messages.show',$user) }}">Latest messages</a>@endif
+                    </nav>
+                @endif
                 @forelse($messages as $message)
 
                     @php
@@ -722,8 +728,8 @@
                                             gap-1
                                             opacity-100
                                             transition
-                                            md:opacity-0
-                                            md:group-hover:opacity-100
+
+
                                         "
                                     >
 
@@ -773,11 +779,11 @@
 
                                             <button
                                                 type="submit"
-                                                title="Delete message"
+                                                title="Delete this message from your inbox" aria-label="Delete this message"
                                                 class="
                                                     flex
-                                                    h-7
-                                                    w-7
+                                                    min-h-7
+                                                    px-2
                                                     items-center
                                                     justify-center
                                                     rounded-lg
@@ -796,7 +802,8 @@
                                                     "
                                                 ></i>
 
-                                            </button>
+                                             <span class="ml-1 text-xs">Delete</span>
+</button>
 
                                         </form>
 
@@ -1402,4 +1409,5 @@
 
     </script>
 
+    @include('components.messaging-layout')
 </x-app-layout>

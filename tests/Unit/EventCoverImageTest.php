@@ -33,7 +33,7 @@ beforeEach(function () {
 test('public event covers load without a public storage link', function () {
     Storage::disk('public')->put('events/covers/test.png', $this->imageBytes);
     $event = Event::create(['cover_image' => 'events/covers/test.png']);
-    $this->actingAs(new User(['role' => 'super_admin']))
+    $this->actingAs(new User(['is_active'=>true, 'is_blocked'=>false, 'role' => 'super_admin']))
         ->get(route('secure.events.cover', $event))
         ->assertOk()->assertHeader('Content-Type', 'image/png')
         ->assertContent($this->imageBytes);
@@ -44,7 +44,7 @@ test('encrypted event covers are decrypted for authenticated users', function ()
     $path = app(EncryptedFileService::class)->store($file, 'events/covers');
     $event = Event::create(['cover_image' => $path]);
     expect(Storage::disk('local')->get($path))->not->toBe($this->imageBytes);
-    $this->actingAs(new User(['role' => 'student']))
+    $this->actingAs(new User(['is_active'=>true, 'is_blocked'=>false, 'role' => 'student']))
         ->get(route('secure.events.cover', $event))
         ->assertOk()->assertHeader('Content-Type', 'image/png')
         ->assertContent($this->imageBytes);
@@ -57,6 +57,6 @@ test('guests cannot access event covers', function () {
 
 test('missing event covers return not found', function (string $path) {
     $event = Event::create(['cover_image' => $path]);
-    $this->actingAs(new User(['role' => 'admin']))
+    $this->actingAs(new User(['is_active'=>true, 'is_blocked'=>false, 'role' => 'admin']))
         ->get(route('secure.events.cover', $event))->assertNotFound();
 })->with(['events/covers/missing.png', 'private/encrypted/events/covers/missing.enc']);

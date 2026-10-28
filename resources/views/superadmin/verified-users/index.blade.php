@@ -52,7 +52,7 @@
         }
     </style>
 
-    <div class="space-y-8">
+    <div class="uc-verified-db space-y-8">
 
         @if(session('success'))
             <div class="ai-card p-5 text-emerald-300 font-black">
@@ -70,23 +70,27 @@
         @endif
 
         {{-- Stats --}}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="uc-verified-stats grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="ai-card p-6">
+                <i class="uc-verified-stat-icon fas fa-users" aria-hidden="true"></i>
                 <p class="text-slate-400 font-bold">Total Verified</p>
                 <h3 class="mt-3 text-4xl font-black text-cyan-300">{{ $stats['total'] ?? 0 }}</h3>
             </div>
 
             <div class="ai-card p-6">
+                <i class="uc-verified-stat-icon fas fa-user-graduate" aria-hidden="true"></i>
                 <p class="text-slate-400 font-bold">Students</p>
                 <h3 class="mt-3 text-4xl font-black text-emerald-300">{{ $stats['students'] ?? 0 }}</h3>
             </div>
 
             <div class="ai-card p-6">
+                <i class="uc-verified-stat-icon fas fa-graduation-cap" aria-hidden="true"></i>
                 <p class="text-slate-400 font-bold">Alumni</p>
                 <h3 class="mt-3 text-4xl font-black text-purple-300">{{ $stats['alumni'] ?? 0 }}</h3>
             </div>
 
             <div class="ai-card p-6">
+                <i class="uc-verified-stat-icon fas fa-circle-check" aria-hidden="true"></i>
                 <p class="text-slate-400 font-bold">Active</p>
                 <h3 class="mt-3 text-4xl font-black text-pink-300">{{ $stats['active'] ?? 0 }}</h3>
             </div>
@@ -163,7 +167,7 @@
                     <button type="submit"
                             class="w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 py-4 text-white font-black shadow-xl hover:scale-[1.02] transition">
                         <i class="fas fa-wand-magic-sparkles mr-2"></i>
-                        Save With AI Formatting
+                        Save Formatting
                     </button>
                 </form>
             </div>
@@ -191,7 +195,7 @@
     @csrf
 
     <textarea name="bulk_text"
-              rows="7"
+              rows="4"
               class="w-full rounded-2xl bg-slate-950 text-white border border-white/10 p-4"
               placeholder="Raj Mukut, rajmukut@gmail.com, 01700000000, 412201000000, student, CSE, 56, active">{{ old('bulk_text') }}</textarea>
 
@@ -306,4 +310,5 @@
             </div>
         </div>
     </div>
+    @include('components.verified-db-style')
 </x-app-layout>

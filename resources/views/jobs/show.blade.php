@@ -16,11 +16,11 @@
                         Job Details
                     </p>
 
-                    <h2 class="mt-3 text-4xl lg:text-5xl font-black text-white">
+                    <h2 class="uc-header-context mt-3 text-4xl lg:text-5xl font-black text-white">
                         {{ $job->title }}
                     </h2>
 
-                    <p class="mt-3 text-slate-300 max-w-2xl">
+                    <p class="uc-header-context mt-3 text-slate-300 max-w-2xl">
                         {{ $job->company_name }}
                         •
                         {{ $job->location ?: 'Location not specified' }}

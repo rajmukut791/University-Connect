@@ -71,6 +71,8 @@ class DonationManualPaymentController extends Controller
         ]);
 
 
+        $receivingNumber = $validated['payment_method'] === 'bKash' ? $donation->bkash_number : $donation->nagad_number;
+        if (!$receivingNumber) throw \Illuminate\Validation\ValidationException::withMessages(['payment_method'=>'This payment method has not been configured by the campaign owner.']);
         $user = Auth::user();
 
 

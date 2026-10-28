@@ -55,7 +55,9 @@ class PostManagementController extends Controller
                 'cover_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             ],
             'donation' => [
-                'category' => ['nullable', 'string', 'max:100'], 'target_amount' => ['required', 'numeric', 'min:1'],
+                'category' => ['nullable', 'string', 'max:100'],
+                'bkash_number' => ['nullable','string','regex:/^(?:\+?88)?01[3-9][0-9]{8}$/'],
+                'nagad_number' => ['nullable','string','regex:/^(?:\+?88)?01[3-9][0-9]{8}$/'], 'target_amount' => ['required', 'numeric', 'min:1'],
                 'deadline' => ['nullable', 'date'],
                 'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             ],
@@ -121,6 +123,7 @@ class PostManagementController extends Controller
         });
         app(EncryptedFileService::class)->delete($image);
 
+        \App\Services\NotificationService::management($type.'_deleted', ucfirst($type).' Deleted', auth()->user()->name.' deleted the post: '.$post->title, null, 'medium', null, auth()->user());
         return redirect()->route('newsfeed.index')->with('success', 'Post deleted successfully.');
     }
 }

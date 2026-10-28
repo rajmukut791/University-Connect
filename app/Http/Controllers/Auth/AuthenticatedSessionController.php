@@ -44,6 +44,10 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         $login = trim($request->login);
+        $throttleKey = 'login:'.hash('sha256', strtolower($login).'|'.$request->ip());
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            throw ValidationException::withMessages(['login'=>'Too many login attempts. Try again in '.\Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey).' seconds.'])->status(429);
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -71,6 +75,7 @@ class AuthenticatedSessionController extends Controller
                 $user->password
             )
         ) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
             throw ValidationException::withMessages([
                 'login' => 'The provided login credentials are incorrect.',
             ]);
@@ -82,6 +87,7 @@ class AuthenticatedSessionController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $user->releaseExpiredBlock();
         if ($user->is_blocked) {
             throw ValidationException::withMessages([
                 'login' => 'Your account has been blocked.',
@@ -106,6 +112,7 @@ class AuthenticatedSessionController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
         Auth::login(
             $user,
             $request->boolean('remember')

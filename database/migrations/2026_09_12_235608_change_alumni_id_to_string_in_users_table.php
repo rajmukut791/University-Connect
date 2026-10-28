@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'mysql') { \Illuminate\Support\Facades\Schema::table('users', fn (\Illuminate\Database\Schema\Blueprint $table) => $table->string('alumni_id')->nullable()->change()); return; }
+
         /*
         |--------------------------------------------------------------------------
         | Remove foreign key from users.alumni_id if an old FK exists
@@ -46,6 +48,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') return;
+
         /*
         |--------------------------------------------------------------------------
         | Do not automatically convert back to integer

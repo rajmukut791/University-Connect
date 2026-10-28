@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Schema;
 class NewsfeedController extends Controller
 
 {
+    private bool $feedHasMore = false;
+    private int $feedPage = 1;
 
     /*
 
@@ -56,6 +58,7 @@ class NewsfeedController extends Controller
 
     {
 
+        $this->feedPage = (int) (request()->validate(['feed_page'=>['nullable','integer','min:1','max:100000']])['feed_page'] ?? 1);
         $feedItems = collect();
 
 
@@ -178,7 +181,7 @@ class NewsfeedController extends Controller
 
             'newsfeed.index',
 
-            compact('feedItems')
+            ['feedItems'=>$feedItems, 'feedPage'=>$this->feedPage, 'feedHasMore'=>$this->feedHasMore]
 
         )->header('Cache-Control', 'private, no-store, max-age=0');
 
@@ -604,14 +607,9 @@ class NewsfeedController extends Controller
 
 
 
-        return $query
-
-            ->latest()
-
-            ->take(60)
-
-            ->get()
-
+        $batch = $query->latest()->orderByDesc('id')->skip(($this->feedPage - 1) * 20)->take(21)->get();
+        $this->feedHasMore = $this->feedHasMore || $batch->count() > 20;
+        return $batch->take(20)
             ->map(
 
                 fn ($item) =>

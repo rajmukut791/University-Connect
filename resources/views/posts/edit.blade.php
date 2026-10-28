@@ -12,7 +12,7 @@
             $fields += match ($type) {
                 'job' => ['company_name' => ['Company', 'text'], 'location' => ['Location', 'text'], 'type' => ['Job type', 'job_type'], 'experience_level' => ['Experience level', 'experience'], 'salary_range' => ['Salary', 'text'], 'requirements' => ['Requirements', 'textarea'], 'benefits' => ['Benefits', 'textarea'], 'positions_available' => ['Vacancies', 'number'], 'contact_email' => ['Contact email', 'email'], 'contact_phone' => ['Contact phone', 'text'], 'application_url' => ['Application website', 'url'], 'deadline' => ['Deadline', 'date']],
                 'event' => ['type' => ['Event type', 'text'], 'location' => ['Location', 'text'], 'start_date' => ['Start date', 'date'], 'start_time' => ['Start time', 'time'], 'end_date' => ['End date', 'date'], 'end_time' => ['End time', 'time'], 'capacity' => ['Capacity', 'number']],
-                'donation' => ['category' => ['Category', 'text'], 'target_amount' => ['Target amount (BDT)', 'number'], 'deadline' => ['Deadline', 'date']],
+                'donation' => ['bkash_number' => ['bKash receiving number', 'tel'], 'nagad_number' => ['Nagad receiving number', 'tel'], 'category' => ['Category', 'text'], 'target_amount' => ['Target amount (BDT)', 'number'], 'deadline' => ['Deadline', 'date']],
             };
             $imageField = match ($type) { 'job' => 'job_image', 'event' => 'cover_image', 'donation' => 'image' };
         @endphp

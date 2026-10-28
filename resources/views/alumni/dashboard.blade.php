@@ -12,7 +12,7 @@
                     from-slate-950
                     via-purple-950
                     to-amber-950
-                    p-8
+                    p-5
                     shadow-2xl
                     border border-white/10">
 
@@ -40,8 +40,8 @@
                     </p>
 
                     <h2 class="mt-3
-                               text-4xl
-                               lg:text-5xl
+                               text-2xl
+                               lg:text-2xl
                                font-black
                                text-white">
 
@@ -73,8 +73,8 @@
                         Profile Completion
                     </p>
 
-                    <p class="mt-1
-                              text-3xl
+                    <p class="uc-header-context mt-1
+                              text-2xl
                               font-black
                               text-emerald-300">
 
@@ -134,7 +134,7 @@
     </style>
 
 
-    <div class="space-y-8">
+    <div class="uc-alumni-dashboard space-y-8">
 
 
         {{-- ========================================================= --}}

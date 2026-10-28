@@ -182,7 +182,7 @@
             {{-- HEADER --}}
 
             <div
-                class="relative z-10
+                class="uc-compact-header relative z-10
                        mb-8
                        flex flex-col
                        gap-5

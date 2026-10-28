@@ -24,7 +24,7 @@
                         Profile Completion
                     </p>
 
-                    <p class="mt-1 text-3xl font-black text-emerald-300">
+                    <p class="uc-header-context mt-1 text-3xl font-black text-emerald-300">
                         {{ $profileScore ?? 0 }}%
                     </p>
 
@@ -436,7 +436,12 @@
                         </div>
                     </div>
 
-                    @include('profile.partials.professional-summary')
+                    <section class="my-5 rounded-2xl border border-white/10 p-5">
+    <input type="hidden" name="requires_message_request" value="0">
+    <label class="flex items-center gap-3 font-bold"><input type="checkbox" name="requires_message_request" value="1" @checked((bool) old('requires_message_request', $user->requires_message_request ?? true))>Require request before messaging</label>
+    <p class="mt-2 text-sm text-slate-400">New contacts must have an accepted request when enabled. Existing conversations remain available.</p>
+</section>
+@include('profile.partials.professional-summary')
 
                     <div class="flex flex-col sm:flex-row gap-4">
                         <button

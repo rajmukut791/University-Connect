@@ -32,6 +32,9 @@ class CallController extends Controller
             'type' => ['required', 'in:audio,video'],
         ]);
 
+        if (CallSession::whereIn('status',['ringing','accepted'])->where('created_at','>=',now()->subMinutes(2))->where(fn ($q) => $q->whereIn('caller_id',[auth()->id(),$user->id])->orWhereIn('receiver_id',[auth()->id(),$user->id]))->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['call'=>'One of the participants is already on a call.']);
+        }
         $call = CallSession::create([
             'caller_id' => auth()->id(),
             'receiver_id' => $user->id,
@@ -41,7 +44,16 @@ class CallController extends Controller
             'receiver_candidates' => [],
         ]);
 
+        \App\Services\NotificationService::personal($user, 'call', 'Incoming '.ucfirst($request->type).' Call', auth()->user()->name.' is calling you.', route('calls.show', $call), 'high', $call, auth()->user());
         return redirect()->route('calls.show', $call);
+    }
+
+    public function incoming()
+    {
+        abort_unless(in_array(auth()->user()->role, ['student','alumni'], true), 403);
+        $call = CallSession::with('caller')->where('receiver_id', auth()->id())->where('status','ringing')->where('created_at','>=',now()->subMinutes(2))->latest()->first();
+        if (!$call || !$call->caller || !auth()->user()->canMessage($call->caller)) return response()->json(['call'=>null])->header('Cache-Control','no-store');
+        return response()->json(['call'=>['id'=>$call->id,'name'=>$call->caller->name,'type'=>$call->type,'url'=>route('calls.show',$call),'reject_url'=>route('calls.reject',$call)]])->header('Cache-Control','no-store');
     }
 
     public function show(CallSession $call)
@@ -63,6 +75,7 @@ class CallController extends Controller
             abort(403, 'Only receiver can accept the call.');
         }
 
+        abort_unless($call->status === 'ringing' && $call->created_at->gte(now()->subMinutes(2)),409,'This call is no longer ringing.');
         $call->update([
             'status' => 'accepted',
         ]);
@@ -81,6 +94,7 @@ class CallController extends Controller
             abort(403, 'Only receiver can reject the call.');
         }
 
+        abort_unless($call->status === 'ringing',409,'This call is no longer ringing.');
         $call->update([
             'status' => 'rejected',
             'ended_at' => now(),
@@ -140,6 +154,7 @@ class CallController extends Controller
             'answer' => ['required'],
         ]);
 
+        abort_unless(in_array($call->status, ['ringing','accepted'], true),409);
         $call->update([
             'answer' => json_encode($request->answer),
             'status' => 'accepted',

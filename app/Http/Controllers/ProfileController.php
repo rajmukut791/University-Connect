@@ -60,7 +60,7 @@ class ProfileController extends Controller
         |--------------------------------------------------------------------------
         */
         if ($user->isStudent()) {
-            return view('profile.student-edit', [
+            return view('profile.settings', [
                 'user' => $user,
                 'profileScore' => $profileScore,
                 'profileSuggestions' => $profileSuggestions,
@@ -69,7 +69,7 @@ class ProfileController extends Controller
         }
 
         if ($user->isAlumni()) {
-            return view('profile.alumni-edit', [
+            return view('profile.settings', [
                 'user' => $user,
                 'profileScore' => $profileScore,
                 'profileSuggestions' => $profileSuggestions,
@@ -83,7 +83,7 @@ class ProfileController extends Controller
         | Admin + Super Admin
         |--------------------------------------------------------------------------
         */
-        return view('profile.admin-edit', [
+        return view('profile.settings', [
             'user' => $user,
             'profileScore' => $profileScore,
             'profileSuggestions' => $profileSuggestions,
@@ -249,11 +249,19 @@ class ProfileController extends Controller
         }
 
         if ($user->isAlumni()) {
+            $rules['requires_message_request'] = ['sometimes', 'boolean'];
             foreach (['current_company', 'current_designation', 'current_job_type', 'previous_company', 'previous_designation'] as $field) {
                 $rules[$field] = ['nullable', 'string', 'max:255'];
             }
             $rules['work_experience_years'] = ['nullable', 'string', 'max:100'];
             $rules['previous_job_details'] = ['nullable', 'string', 'max:3000'];
+        }
+
+        if ($request->exists('_profile_section')) {
+            $sections = app(\App\Services\ProfileSettingsService::class)->sections($user);
+            $section = $request->input('_profile_section');
+            abort_unless(is_string($section) && isset($sections[$section]), 422);
+            $rules = array_intersect_key($rules, $sections[$section]['fields']);
         }
 
         $validated = $request->validate($rules);
@@ -265,7 +273,7 @@ class ProfileController extends Controller
         */
          unset($validated['profile_image']);
 
-       if ($request->hasFile('profile_image')) {
+       if (isset($rules['profile_image']) && $request->hasFile('profile_image')) {
 
     $encryptedFiles = app(
         EncryptedFileService::class

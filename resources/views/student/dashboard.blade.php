@@ -13,9 +13,7 @@
             $profileStrength['missing'] ?? []
         )->take(5);
 
-        $suggestions = collect(
-            $aiSuggestions ?? []
-        )->take(3);
+
     @endphp
 
 
@@ -52,8 +50,8 @@
 
 
                     <h1 class="mt-3
-                               text-3xl
-                               md:text-4xl
+                               text-2xl
+                               md:text-2xl
                                font-black
                                text-white">
 
@@ -88,7 +86,7 @@
     {{-- PAGE --}}
     {{-- ============================================================= --}}
 
-    <div class="max-w-7xl mx-auto space-y-7">
+    <div class="uc-student-dashboard max-w-7xl mx-auto space-y-7">
 
 
         {{-- ========================================================= --}}
@@ -142,7 +140,7 @@
         {{-- Notifications removed --}}
         {{-- ========================================================= --}}
 
-        <div class="grid
+        <div class="uc-student-stats grid
                     grid-cols-2
                     lg:grid-cols-4
                     gap-4">
@@ -410,7 +408,7 @@
         {{-- PROFILE STRENGTH --}}
         {{-- ========================================================= --}}
 
-        <div>
+        <div class="uc-student-strength">
 
 
             {{-- ===================================================== --}}
@@ -644,7 +642,7 @@
         {{-- JOBS + EVENTS --}}
         {{-- ========================================================= --}}
 
-        <div class="grid
+        <div class="uc-student-opportunities grid
                     grid-cols-1
                     xl:grid-cols-3
                     gap-6">
@@ -1090,7 +1088,7 @@
         {{-- Fake mentor cards removed --}}
         {{-- ========================================================= --}}
 
-        <div class="rounded-[30px]
+        <div class="uc-student-mentor-panel rounded-[30px]
                     border border-white/10
                     bg-gradient-to-r
                     from-slate-900
@@ -1197,150 +1195,11 @@
 
 
         {{-- ========================================================= --}}
-        {{-- AI CAREER SUGGESTIONS --}}
+        {{-- Dashboard resources --}}
         {{-- No fake percentage/progress bars --}}
         {{-- ========================================================= --}}
 
-        @if($suggestions->isNotEmpty())
 
-            <div class="rounded-[30px]
-                        border border-white/10
-                        bg-white/10
-                        dark:bg-slate-900/70
-                        p-6
-                        shadow-xl
-                        backdrop-blur-xl">
-
-                <div>
-
-                    <p class="text-xs
-                              font-black
-                              uppercase
-                              tracking-[0.25em]
-                              text-cyan-400">
-
-                        AI Suggestions
-
-                    </p>
-
-                    <h2 class="mt-2
-                               text-2xl
-                               font-black
-                               text-slate-900
-                               dark:text-white">
-
-                        Career Recommendations
-
-                    </h2>
-
-                    <p class="mt-1
-                              text-sm
-                              text-slate-500">
-
-                        Practical suggestions based on your current profile.
-
-                    </p>
-
-                </div>
-
-
-                <div class="mt-6
-                            grid
-                            grid-cols-1
-                            md:grid-cols-3
-                            gap-4">
-
-                    @foreach($suggestions as $suggestion)
-
-                        @php
-                            $suggestionTitle =
-                                is_array($suggestion)
-                                    ? ($suggestion['title'] ?? 'Career Suggestion')
-                                    : ($suggestion->title ?? 'Career Suggestion');
-
-                            $suggestionMessage =
-                                is_array($suggestion)
-                                    ? ($suggestion['message'] ?? $suggestion['description'] ?? '')
-                                    : ($suggestion->message ?? $suggestion->description ?? '');
-
-                            $suggestionType =
-                                is_array($suggestion)
-                                    ? ($suggestion['type'] ?? 'career')
-                                    : ($suggestion->type ?? 'career');
-                        @endphp
-
-
-                        <div class="rounded-2xl
-                                    border border-white/10
-                                    bg-slate-100
-                                    dark:bg-slate-950/70
-                                    p-5">
-
-                            <div class="h-10 w-10
-                                        rounded-xl
-                                        bg-cyan-500/10
-                                        flex items-center
-                                        justify-center
-                                        text-cyan-500">
-
-                                <i class="fas fa-lightbulb"></i>
-
-                            </div>
-
-
-                            <div class="mt-4
-                                        flex
-                                        items-start
-                                        justify-between
-                                        gap-3">
-
-                                <h3 class="font-black
-                                           text-slate-900
-                                           dark:text-white">
-
-                                    {{ $suggestionTitle }}
-
-                                </h3>
-
-
-                                <span class="rounded-full
-                                             bg-purple-500/10
-                                             px-2 py-1
-                                             text-[9px]
-                                             font-black
-                                             uppercase
-                                             text-purple-400">
-
-                                    {{ $suggestionType }}
-
-                                </span>
-
-                            </div>
-
-
-                            @if($suggestionMessage)
-
-                                <p class="mt-3
-                                          text-xs
-                                          leading-6
-                                          text-slate-500
-                                          dark:text-slate-400">
-
-                                    {{ $suggestionMessage }}
-
-                                </p>
-
-                            @endif
-
-                        </div>
-
-                    @endforeach
-
-                </div>
-
-            </div>
-
-        @endif
 
 
 
@@ -1348,7 +1207,7 @@
         {{-- QUICK ACTIONS --}}
         {{-- ========================================================= --}}
 
-        <div class="rounded-[30px]
+        <div class="uc-student-quick-panel rounded-[30px]
                     border border-white/10
                     bg-slate-900/80
                     p-6
@@ -1517,4 +1376,9 @@
 
     </div>
 
+    <section class="mx-auto mt-4 max-w-7xl rounded-2xl border border-indigo-400/20 bg-slate-900/70 p-4 flex flex-wrap items-center justify-between gap-3">
+        <div><h2 class="font-bold text-white">Alumni Conversion</h2><p class="mt-1 text-xs text-slate-400">Graduated? Apply to update your student account to alumni. Track your application on the same page.</p></div>
+        <a href="{{ route('alumni-conversion.create') }}" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">Apply / View Status</a>
+    </section>
+    @include('components.student-dashboard-style')
 </x-app-layout>

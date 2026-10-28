@@ -218,11 +218,11 @@
                     class="rounded-2xl bg-gradient-to-r from-cyan-500 to-fuchsia-500 px-6 py-4 text-sm font-black text-white shadow-xl hover:scale-105 transition"
                 >
                     <i class="fas fa-magnifying-glass mr-2"></i>
-                    AI Search
+                    Search Jobs
                 </button>
             </form>
         </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div class="uc-post-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
             @forelse($jobs as $job)
                 <div class="uc-card p-4">
                     <div class="relative z-10 flex flex-col h-full">

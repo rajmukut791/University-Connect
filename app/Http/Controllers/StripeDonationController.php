@@ -26,6 +26,9 @@ class StripeDonationController extends Controller
         );
 
 
+        if (!config('services.stripe.secret') || !config('services.stripe.webhook_secret')) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['amount'=>'Card payments are not available until payment verification is configured.']);
+        }
         $validated = $request->validate([
             'amount' => [
                 'required',

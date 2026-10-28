@@ -83,7 +83,7 @@
     </div>
 @endif
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div class="uc-post-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
             @forelse($donations as $donation)
                 <div class="donation-card p-4 ">
                     <div class="relative z-10">

@@ -74,7 +74,7 @@
             <div class="event-orb absolute top-56 -left-28 h-80 w-80 rounded-full bg-cyan-500/20 blur-3xl" style="animation-delay:2s"></div>
             <div class="event-orb absolute -bottom-28 right-1/3 h-80 w-80 rounded-full bg-emerald-500/15 blur-3xl" style="animation-delay:4s"></div>
 
-            <div class="relative z-10 mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="uc-compact-header relative z-10 mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-black uppercase tracking-[.3em] text-emerald-300">
                         <i class="fas fa-calendar-plus"></i>

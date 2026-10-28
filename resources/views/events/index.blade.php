@@ -228,114 +228,7 @@
         {{-- Student/Alumni will NEVER see this --}}
         {{-- ========================================================= --}}
 
-        @if($isAdminPanel)
 
-            <div class="event-action-card p-6">
-
-                <div class="flex
-                            flex-col
-                            xl:flex-row
-                            xl:items-center
-                            xl:justify-between
-                            gap-6">
-
-                    <div>
-
-                        <p class="text-sm
-                                  uppercase
-                                  tracking-[0.25em]
-                                  text-amber-300
-                                  font-black">
-
-                            Admin Event Control
-
-                        </p>
-
-
-                        <h3 class="mt-2
-                                   text-2xl
-                                   font-black
-                                   text-white">
-
-                            Event Registration Management
-
-                        </h3>
-
-
-                        <p class="mt-2
-                                  text-sm
-                                  text-slate-400
-                                  max-w-2xl">
-
-                            View registered participants and manage
-                            university event participation from one place.
-
-                        </p>
-
-                    </div>
-
-
-                    <div class="flex
-                                flex-col
-                                sm:flex-row
-                                gap-3">
-
-                        <a
-                            href="#event-list"
-                            class="inline-flex
-                                   items-center
-                                   justify-center
-                                   gap-2
-                                   px-6 py-4
-                                   rounded-2xl
-                                   bg-gradient-to-r
-                                   from-amber-500
-                                   to-orange-600
-                                   text-white
-                                   font-black
-                                   shadow-xl
-                                   hover:scale-105
-                                   transition"
-                        >
-
-                            <i class="fas fa-clipboard-check"></i>
-
-                            Event Participants
-
-                        </a>
-
-
-                        <a
-                            href="{{ route('events.create') }}"
-                            class="inline-flex
-                                   items-center
-                                   justify-center
-                                   gap-2
-                                   px-6 py-4
-                                   rounded-2xl
-                                   bg-gradient-to-r
-                                   from-emerald-500
-                                   to-cyan-600
-                                   text-white
-                                   font-black
-                                   shadow-xl
-                                   hover:scale-105
-                                   transition"
-                        >
-
-                            <i class="fas fa-calendar-plus"></i>
-
-                            Add Event
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        @endif
 
 
 
@@ -732,7 +625,7 @@
         {{-- EVENT CARDS --}}
         {{-- ========================================================= --}}
 
-        <div id="event-list" class="grid
+        <div id="event-list" class="uc-post-grid grid
                     grid-cols-1
                     md:grid-cols-2
                     xl:grid-cols-3

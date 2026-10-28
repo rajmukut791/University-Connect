@@ -30,7 +30,7 @@
                 <div class="rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 px-6 py-5 text-center">
                     <p class="text-xs text-slate-300">Profile Status</p>
 
-                    <p class="text-4xl font-black text-emerald-300">
+                    <p class="uc-header-context text-4xl font-black text-emerald-300">
                         {{ $profileScore ?? 0 }}%
                     </p>
 
@@ -86,7 +86,7 @@
                 @if(!$isAdmin)
                     <div class="rounded-[2rem] border border-white/15 bg-white/10 backdrop-blur-2xl p-7 shadow-2xl">
     <p class="text-sm uppercase tracking-[0.35em] text-cyan-400 font-black">
-        AI Suggestions
+        Profile Suggestions
     </p>
 
     <h3 class="mt-3 text-3xl font-black text-white">
@@ -96,7 +96,7 @@
     @php
         $score = $profileStrength['score'] ?? 0;
         $level = $profileStrength['level'] ?? 'Improve';
-        $message = $profileStrength['message'] ?? 'Complete your profile to improve AI recommendations.';
+        $message = $profileStrength['message'] ?? 'Complete your profile to improve profile completeness.';
         $missingItems = $profileStrength['missing'] ?? [];
         $completedItems = $profileStrength['completed'] ?? [];
     @endphp
@@ -104,7 +104,7 @@
     <div class="mt-6 rounded-3xl bg-slate-950/70 border border-white/10 p-5">
         <div class="flex items-center justify-between gap-4">
             <div>
-                <p class="text-sm text-slate-400">AI Verified Score</p>
+                <p class="text-sm text-slate-400">Profile Completion Score</p>
                 <h4 class="text-4xl font-black text-white mt-1">
                     {{ $score }}%
                 </h4>
@@ -141,7 +141,7 @@
                         Add {{ $item }}
                     </p>
                     <p class="text-sm text-slate-400 mt-1">
-                        AI detected this information is missing. Adding it will improve your profile strength and recommendation quality.
+                        This information is missing. Adding it will improve your profile strength and recommendation quality.
                     </p>
                 </div>
             </div>
@@ -152,7 +152,7 @@
                     Excellent Profile
                 </h4>
                 <p class="mt-2 text-sm text-slate-300">
-                    AI verified that your important profile fields are completed.
+                    Your important profile fields are completed.
                 </p>
             </div>
         @endforelse
@@ -228,7 +228,7 @@
                         @if($isAdmin)
                             Update your admin profile information.
                         @else
-                            Update your profile information for better networking and AI recommendations.
+                            Update your profile information for better networking and profile completeness.
                         @endif
                     </p>
                 </div>
@@ -525,7 +525,7 @@
                                     Student Career Profile
                                 </h4>
                                 <p class="text-sm text-slate-500 mt-2">
-                                    Add skills, department, batch and career goal to get better AI job and mentorship recommendations.
+                                    Add skills, department, batch and career goal to get better job and mentorship opportunities.
                                 </p>
                             </div>
                         @endif

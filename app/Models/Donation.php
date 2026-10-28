@@ -11,6 +11,8 @@ class Donation extends Model
 
     protected $fillable = [
         'archived_at',
+        'bkash_number',
+        'nagad_number',
         'user_id',
         'title',
         'category',

@@ -32,12 +32,11 @@
             <h2 class="font-bold">Pending Date Extension Request</h2>
             <p class="whitespace-pre-line">{{ $pendingExtension->reason }}</p>
             @foreach($pendingExtension->dates as $field => $value)<p>{{ ucwords(str_replace('_', ' ', $field)) }}: {{ $value }}</p>@endforeach
-            <form method="POST" action="{{ route('posts.extension.review', $pendingExtension) }}" class="flex flex-wrap gap-3">
-                @csrf @method('PATCH')
-                <input name="review_note" maxlength="3000" placeholder="Review note (required to reject)" class="bg-slate-900 rounded-lg p-2" />
-                <button name="decision" value="approved" class="bg-green-700 rounded-lg px-4 py-2 text-white">Approve & Publish</button>
-                <button name="decision" value="rejected" class="bg-red-700 rounded-lg px-4 py-2 text-white">Reject</button>
-            </form>
+            @if((int)$pendingExtension->user_id === (int)auth()->id() || $isOwner)
+                <p class="text-xs text-amber-300">Another administrator must review your own request.</p>
+            @else
+                <x-extension-review-form :extension="$pendingExtension" />
+            @endif
         </section>
     @endif
 @endif

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AlumniConversionRequest;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AlumniConversionController extends Controller
 {
@@ -33,7 +34,7 @@ class AlumniConversionController extends Controller
 
         return view(
             'alumni-conversion.create',
-            compact('existingRequest')
+            ['existingRequest'=>$existingRequest, 'latestApplication'=>AlumniConversionRequest::where('user_id',$user->id)->latest('id')->first()]
         );
     }
 
@@ -390,125 +391,128 @@ class AlumniConversionController extends Controller
             abort(403);
         }
 
-        if (
-            $conversionRequest->status !==
-            'pending'
-        ) {
-            return back()->with(
-                'error',
-                'This request has already been processed.'
+        return DB::transaction(function () use ($request, $conversionRequest, $admin) {
+            $conversionRequest = AlumniConversionRequest::whereKey($conversionRequest->id)->lockForUpdate()->firstOrFail();
+            if (
+                $conversionRequest->status !==
+                'pending'
+            ) {
+                return back()->with(
+                    'error',
+                    'This request has already been processed.'
+                );
+            }
+
+            $request->validate([
+                'admin_notes' => [
+                    'nullable',
+                    'string',
+                    'max:2000',
+                ],
+            ]);
+
+            $conversionRequest
+                ->loadMissing('user');
+
+            $user = \App\Models\User::whereKey($conversionRequest->user_id)->lockForUpdate()->first();
+
+            if (
+                !$user ||
+                $user->role !== 'student' || !$user->is_active || $user->is_blocked
+            ) {
+                return back()->with(
+                    'error',
+                    'Only active student accounts can be converted to alumni.'
+                );
+            }
+
+            $alumniId =
+                $this->generateAlumniId();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Convert User
+            |--------------------------------------------------------------------------
+            */
+
+            $user->update([
+                'role' =>
+                    'alumni',
+
+                'alumni_id' =>
+                    $alumniId,
+
+                'alumni_since' =>
+                    now(),
+
+                'converted_from_student_at' =>
+                    now(),
+
+                'converted_by' =>
+                    $admin->id,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update Conversion Request
+            |--------------------------------------------------------------------------
+            */
+
+            $conversionRequest->update([
+                'status' =>
+                    'approved',
+
+                'admin_notes' =>
+                    $request->admin_notes,
+
+                'approved_by' =>
+                    $admin->id,
+
+                'approved_at' =>
+                    now(),
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Alumni Notification
+            |--------------------------------------------------------------------------
+            */
+
+            NotificationService::personal(
+                $user,
+                'alumni_conversion_approved',
+                'Alumni Conversion Approved',
+                'Congratulations! Your account has been successfully converted to an alumni account.',
+                route('dashboard'),
+                'high',
+                $conversionRequest,
+                $admin
             );
-        }
 
-        $request->validate([
-            'admin_notes' => [
-                'nullable',
-                'string',
-                'max:2000',
-            ],
-        ]);
+            /*
+            |--------------------------------------------------------------------------
+            | Management Activity
+            |--------------------------------------------------------------------------
+            */
 
-        $conversionRequest
-            ->loadMissing('user');
-
-        $user = $conversionRequest->user;
-
-        if (
-            !$user ||
-            $user->role !== 'student'
-        ) {
-            return back()->with(
-                'error',
-                'Only active student accounts can be converted to alumni.'
+            NotificationService::management(
+                'alumni_conversion_approved_management',
+                'Alumni Conversion Approved',
+                $admin->name .
+                    ' converted ' .
+                    $user->name .
+                    ' to alumni.',
+                null,
+                'high',
+                $conversionRequest,
+                $admin
             );
-        }
 
-        $alumniId =
-            $this->generateAlumniId();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Convert User
-        |--------------------------------------------------------------------------
-        */
-
-        $user->update([
-            'role' =>
-                'alumni',
-
-            'alumni_id' =>
-                $alumniId,
-
-            'alumni_since' =>
-                now(),
-
-            'converted_from_student_at' =>
-                now(),
-
-            'converted_by' =>
-                $admin->id,
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update Conversion Request
-        |--------------------------------------------------------------------------
-        */
-
-        $conversionRequest->update([
-            'status' =>
-                'approved',
-
-            'admin_notes' =>
-                $request->admin_notes,
-
-            'approved_by' =>
-                $admin->id,
-
-            'approved_at' =>
-                now(),
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Alumni Notification
-        |--------------------------------------------------------------------------
-        */
-
-        NotificationService::personal(
-            $user,
-            'alumni_conversion_approved',
-            'Alumni Conversion Approved',
-            'Congratulations! Your account has been successfully converted to an alumni account.',
-            route('dashboard'),
-            'high',
-            $conversionRequest,
-            $admin
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Management Activity
-        |--------------------------------------------------------------------------
-        */
-
-        NotificationService::management(
-            'alumni_conversion_approved_management',
-            'Alumni Conversion Approved',
-            $admin->name .
-                ' converted ' .
-                $user->name .
-                ' to alumni.',
-            null,
-            'high',
-            $conversionRequest,
-            $admin
-        );
-
-        return back()->with(
-            'success',
-            'Student account converted to alumni successfully.'
-        );
+            return back()->with(
+                'success',
+                'Student account converted to alumni successfully.'
+            );
+        }, 3);
     }
 
     /*
@@ -532,83 +536,86 @@ class AlumniConversionController extends Controller
             abort(403);
         }
 
-        if (
-            $conversionRequest->status !==
-            'pending'
-        ) {
-            return back()->with(
-                'error',
-                'This request has already been processed.'
-            );
-        }
+        return DB::transaction(function () use ($request, $conversionRequest, $admin) {
+            $conversionRequest = AlumniConversionRequest::whereKey($conversionRequest->id)->lockForUpdate()->firstOrFail();
+            if (
+                $conversionRequest->status !==
+                'pending'
+            ) {
+                return back()->with(
+                    'error',
+                    'This request has already been processed.'
+                );
+            }
 
-        $validated = $request->validate([
-            'admin_notes' => [
-                'required',
-                'string',
-                'max:2000',
-            ],
-        ]);
+            $validated = $request->validate([
+                'admin_notes' => [
+                    'required',
+                    'string',
+                    'max:2000',
+                ],
+            ]);
 
-        $conversionRequest
-            ->loadMissing('user');
+            $conversionRequest
+                ->loadMissing('user');
 
-        $conversionRequest->update([
-            'status' =>
-                'rejected',
+            $conversionRequest->update([
+                'status' =>
+                    'rejected',
 
-            'admin_notes' =>
-                $validated['admin_notes'],
+                'admin_notes' =>
+                    $validated['admin_notes'],
 
-            'approved_by' =>
-                $admin->id,
+                'approved_by' =>
+                    $admin->id,
 
-            'approved_at' =>
-                now(),
-        ]);
+                'approved_at' =>
+                    now(),
+            ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Student Notification
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | Student Notification
+            |--------------------------------------------------------------------------
+            */
 
-        if ($conversionRequest->user) {
-            NotificationService::personal(
-                $conversionRequest->user,
-                'alumni_conversion_rejected',
-                'Alumni Conversion Request Rejected',
-                'Your alumni conversion request was not approved. Please review the administrator feedback.',
-                route('dashboard'),
-                'high',
+            if ($conversionRequest->user) {
+                NotificationService::personal(
+                    $conversionRequest->user,
+                    'alumni_conversion_rejected',
+                    'Alumni Conversion Request Rejected',
+                    'Your alumni conversion request was not approved. Please review the administrator feedback.',
+                    route('dashboard'),
+                    'high',
+                    $conversionRequest,
+                    $admin
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Management Activity
+            |--------------------------------------------------------------------------
+            */
+
+            NotificationService::management(
+                'alumni_conversion_rejected_management',
+                'Alumni Conversion Rejected',
+                $admin->name .
+                    ' rejected the alumni conversion request from ' .
+                    ($conversionRequest->user?->name ?? 'a student') .
+                    '.',
+                null,
+                'medium',
                 $conversionRequest,
                 $admin
             );
-        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Management Activity
-        |--------------------------------------------------------------------------
-        */
-
-        NotificationService::management(
-            'alumni_conversion_rejected_management',
-            'Alumni Conversion Rejected',
-            $admin->name .
-                ' rejected the alumni conversion request from ' .
-                ($conversionRequest->user?->name ?? 'a student') .
-                '.',
-            null,
-            'medium',
-            $conversionRequest,
-            $admin
-        );
-
-        return back()->with(
-            'success',
-            'Alumni conversion request rejected.'
-        );
+            return back()->with(
+                'success',
+                'Alumni conversion request rejected.'
+            );
+        }, 3);
     }
 
     /*

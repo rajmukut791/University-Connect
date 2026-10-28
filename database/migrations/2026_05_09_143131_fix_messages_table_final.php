@@ -48,11 +48,11 @@ return new class extends Migration
         });
 
         if (Schema::hasColumn('messages', 'body')) {
-            DB::statement('ALTER TABLE messages MODIFY body TEXT NULL');
+            if (DB::getDriverName() === 'mysql') DB::statement('ALTER TABLE messages MODIFY body TEXT NULL');
         }
 
         if (Schema::hasColumn('messages', 'message')) {
-            DB::statement('ALTER TABLE messages MODIFY message TEXT NULL');
+            if (DB::getDriverName() === 'mysql') DB::statement('ALTER TABLE messages MODIFY message TEXT NULL');
         }
     }
 

@@ -146,12 +146,7 @@
         const toggleMicBtn = document.getElementById('toggleMicBtn');
         const toggleCameraBtn = document.getElementById('toggleCameraBtn');
 
-        const iceServers = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-            ]
-        };
+        const iceServers = { iceServers: @json(config('services.calls.ice_servers')) };
 
         async function postJson(url, data = {}) {
             const response = await fetch(url, {

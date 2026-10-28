@@ -26,7 +26,7 @@
     </x-slot>
 
 
-    <div class="space-y-6">
+    <div class="uc-conversion-review space-y-6">
 
         {{-- ================================================================
         | Success Message
@@ -973,4 +973,12 @@
 
     </div>
 
+    <style>
+        .uc-conversion-review > .grid { gap: 12px; }
+        .uc-conversion-review a[class*="p-6"] { padding: 14px !important; border-radius: 16px; }
+        .uc-conversion-review :is(h3,.text-3xl) { font-size: 22px; }
+        .uc-conversion-review textarea { border-radius: 10px; }
+        .uc-conversion-review td { vertical-align: top; }
+        .uc-conversion-review button[type=submit]:focus-visible { outline: 2px solid #a5b4fc; outline-offset: 3px; }
+    </style>
 </x-app-layout>

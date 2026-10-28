@@ -58,7 +58,7 @@
         }
     </style>
 
-    <div class="space-y-8">
+    <div class="uc-verified-db space-y-8">
 
         @if(session('success'))
             <div class="rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-4 text-emerald-500 font-black">
@@ -75,23 +75,27 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="uc-verified-stats grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="v-card p-6">
+                <i class="uc-verified-stat-icon fas fa-users" aria-hidden="true"></i>
                 <p class="text-sm text-slate-400 font-bold">Total</p>
                 <h3 class="mt-3 text-4xl font-black text-cyan-400">{{ $stats['total'] ?? 0 }}</h3>
             </div>
 
             <div class="v-card p-6">
+                <i class="uc-verified-stat-icon fas fa-user-graduate" aria-hidden="true"></i>
                 <p class="text-sm text-slate-400 font-bold">Students</p>
                 <h3 class="mt-3 text-4xl font-black text-blue-400">{{ $stats['students'] ?? 0 }}</h3>
             </div>
 
             <div class="v-card p-6">
+                <i class="uc-verified-stat-icon fas fa-graduation-cap" aria-hidden="true"></i>
                 <p class="text-sm text-slate-400 font-bold">Alumni</p>
                 <h3 class="mt-3 text-4xl font-black text-purple-400">{{ $stats['alumni'] ?? 0 }}</h3>
             </div>
 
             <div class="v-card p-6">
+                <i class="uc-verified-stat-icon fas fa-circle-check" aria-hidden="true"></i>
                 <p class="text-sm text-slate-400 font-bold">Active</p>
                 <h3 class="mt-3 text-4xl font-black text-emerald-400">{{ $stats['active'] ?? 0 }}</h3>
             </div>
@@ -169,7 +173,7 @@
 
                     <button class="w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 py-4 text-white font-black shadow-xl hover:scale-[1.02] transition">
                         <i class="fas fa-wand-magic-sparkles mr-2"></i>
-                        Save With AI Formatting
+                        Save Formatting
                     </button>
                 </form>
             </div>
@@ -291,4 +295,5 @@
             </div>
         </div>
     </div>
+    @include('components.verified-db-style')
 </x-app-layout>

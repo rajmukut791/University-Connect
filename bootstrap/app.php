@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
 
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [\App\Http\Middleware\EnsureAccountAvailable::class]);
         $middleware->web(prepend: [\App\Http\Middleware\UnblockExpiredAccounts::class, \App\Http\Middleware\ArchiveExpiredPosts::class]);
 
         $middleware->validateCsrfTokens(except: ['payments/stripe/webhook']);

@@ -2,11 +2,19 @@
 
 
 
-    <div class="min-h-screen">
+    <div class="uc-newsfeed-page min-h-screen">
 
 
 
         <style>
+            .uc-main-area:has(.uc-newsfeed-page) { padding-top: 8px; }
+            .uc-feed-interests { background: linear-gradient(115deg,#17223bd9,#221b3bd9); border-color: #a78bfa2e; }
+            .uc-feed-interests summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; font-size: 13px; color: #e0e7ff; }
+            .uc-feed-interests summary::-webkit-details-marker { display: none; }
+            .uc-feed-interests summary::after { content: '+'; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; background: #8b5cf61c; color: #c4b5fd; font-size: 18px; }
+            .uc-feed-interests[open] summary::after { content: '−'; }
+            .uc-feed-interests summary:focus-visible { outline: 2px solid #a5b4fc; outline-offset: 5px; border-radius: 4px; }
+
 
 
 
@@ -376,7 +384,7 @@
 
 
 
-        <div class="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 py-6">
+        <div class="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 pt-2 pb-6">
 
 
 
@@ -565,7 +573,7 @@
             <div class="uc-feed-shell mt-5 mb-7">
 
                 @if(in_array(auth()->user()->role, ['student', 'alumni'], true))
-                    <details class="mb-5 rounded-2xl border border-white/10 bg-slate-900 p-5 text-white" @if(empty(auth()->user()->interests) || $errors->has('interests') || $errors->has('interests.*')) open @endif>
+                    <details class="uc-feed-interests mb-4 rounded-2xl border border-white/10 bg-slate-900 p-4 text-white" @if($errors->has('interests') || $errors->has('interests.*')) open @endif>
                         <summary class="cursor-pointer font-bold">{{ empty(auth()->user()->interests) ? 'Choose your interests' : 'Update Interests' }}</summary>
                         <p class="my-3 text-sm text-slate-400">Related posts appear first. You can still browse all posts and change your interests here.</p>
                         <form method="POST" action="{{ route('newsfeed.interests.update') }}">
@@ -1785,6 +1793,12 @@
 
 
 
+                @if($feedPage > 1 || $feedHasMore)
+                    <nav class="flex justify-center gap-3 py-3 text-xs" aria-label="Feed pages">
+                        @if($feedPage > 1)<a class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-slate-200" href="{{ route('newsfeed.index',['feed_page'=>$feedPage-1]) }}">Newer posts</a>@endif
+                        @if($feedHasMore)<a class="rounded-xl border border-indigo-400/30 bg-indigo-500/10 px-4 py-2 text-indigo-200" href="{{ route('newsfeed.index',['feed_page'=>$feedPage+1]) }}">Older posts</a>@endif
+                    </nav>
+                @endif
                 @if($feedItems->count() > 12)
 
                     <div id="uc-load-more-wrap" class="pt-1 text-center">

@@ -1,7 +1,62 @@
 <x-guest-layout>
+<style>
+.uc-login { min-height: 100svh; background: radial-gradient(ellipse at 10% 20%, #102d50 0, transparent 45%), radial-gradient(ellipse at 90% 80%, #351248 0, transparent 50%), #020617; }
+.uc-login:before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .35; background: repeating-linear-gradient(0deg, transparent 0 53px, #38bdf818 54px), repeating-linear-gradient(90deg, transparent 0 53px, #818cf818 54px); animation: ucLoginGrid 18s linear infinite; }
+.uc-login:after { content: ''; position: absolute; width: 45vmin; height: 45vmin; border: 1px solid #818cf844; border-radius: 50%; box-shadow: 0 0 70px #6366f130, inset 0 0 70px #22d3ee15; left: 12%; top: 24%; pointer-events: none; animation: ucLoginOrbit 12s ease-in-out infinite; }
+.uc-login .max-w-6xl { gap: clamp(16px, 3vw, 40px); }
+.uc-login h1 { font-size: clamp(2rem, 4vw, 3.5rem); }
+.uc-login form.space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 12px; }
+.uc-login .p-7, .uc-login .md\:p-9, .uc-login .p-8, .uc-login .p-10 { padding: clamp(16px, 2.2vh, 28px); }
+.uc-login .mt-5, .uc-login .mt-6 { margin-top: 12px; }
+.uc-login .mb-8 { margin-bottom: 16px; }
+.uc-login .space-y-5 input { padding-top: 10px; padding-bottom: 10px; }
+@keyframes ucLoginGrid { to { transform: translateY(54px); } }
+@keyframes ucLoginOrbit { 50% { transform: translate(18px, -20px) scale(1.1); opacity: .5; } }
 
-    <div class="min-h-screen relative overflow-hidden bg-slate-950 text-white flex items-center justify-center px-4 py-10">
 
+@media (prefers-reduced-motion: reduce) { .uc-login:before, .uc-login:after, .uc-login .animate-pulse { animation: none; } }
+
+.uc-login { isolation: isolate; }
+.uc-login:before { inset: -54px; mask-image: radial-gradient(ellipse, #000, transparent 85%); }
+.uc-login:after { display: none; }
+.uc-login-universe { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.uc-login-aura { position: absolute; width: 65vmax; height: 65vmax; border-radius: 50%; filter: blur(65px); opacity: .22; background: radial-gradient(circle, #0891b2, transparent 65%); top: -35%; left: -20%; animation: ucAuraDrift 16s ease-in-out infinite alternate; }
+.uc-login-aura.purple { background: radial-gradient(circle, #a855f7, transparent 65%); top: auto; left: auto; bottom: -40%; right: -20%; animation-delay: -8s; }
+.uc-login-orbits { position: absolute; width: min(90vw, 900px); aspect-ratio: 1; top: 50%; left: 30%; transform: translate(-50%, -50%); }
+.uc-login-ring { position: absolute; inset: 10%; border: 1px solid #67e8f926; border-radius: 50%; animation: ucRingSpin 30s linear infinite; box-shadow: 0 0 45px #22d3ee0d, inset 0 0 45px #6366f10d; }
+.uc-login-ring:nth-child(2) { inset: 22%; border-color: #c084fc35; animation-duration: 22s; animation-direction: reverse; }
+.uc-login-ring:nth-child(3) { inset: 34%; border-style: dashed; animation-duration: 45s; }
+.uc-login-ring:before { content: ''; position: absolute; top: 50%; left: -4px; width: 7px; height: 7px; border-radius: 50%; background: #67e8f9; box-shadow: 0 0 20px 4px #22d3ee80; }
+.uc-login-ring:nth-child(2):before { background: #e9d5ff; box-shadow: 0 0 20px 4px #a855f780; }
+.uc-login-stars { position: absolute; inset: -10%; background-image: radial-gradient(circle, #a5f3fcaa 1px, transparent 2px), radial-gradient(circle, #c4b5fd88 1px, transparent 2px); background-size: 137px 151px, 211px 193px; background-position: 0 0, 60px 80px; animation: ucStarsFloat 24s ease-in-out infinite alternate; opacity: .45; }
+@keyframes ucRingSpin { to { transform: rotate(360deg); } }
+@keyframes ucAuraDrift { to { transform: translate(12%, 15%) scale(1.15); } }
+@keyframes ucStarsFloat { to { transform: translate3d(20px, -30px, 0); opacity: .7; } }
+@media (max-height: 720px) { .uc-login { padding-top: 16px; padding-bottom: 16px; } .uc-login .h-16 { width: 48px; height: 48px; } .uc-login .text-3xl { font-size: 1.5rem; } .uc-login .mt-8 { margin-top: 16px; } }
+@media (prefers-reduced-motion: reduce) { .uc-login-universe * { animation: none !important; } }
+
+/* Clip decorative layers so they cannot add blank scrollable space. */
+html:has(.uc-login), body:has(.uc-login) { margin: 0; overflow-x: clip; }
+body:has(.uc-login) > .uc-auth-enter { min-height: 100dvh; }
+.uc-login { min-height: 100dvh; width: 100%; box-sizing: border-box; overflow: clip; }
+.uc-login > .max-w-6xl { min-width: 0; }
+.uc-login > .max-w-6xl > div { min-width: 0; }
+@media (min-width: 1024px) and (min-height: 540px) {
+    .uc-login { padding-block: 12px; }
+    .uc-login .mb-8 { margin-bottom: 12px; }
+    .uc-login form.space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 10px; }
+    .uc-login form .p-4 { padding: 12px; }
+}
+</style>
+
+
+    <div class="uc-login min-h-screen relative overflow-hidden bg-slate-950 text-white flex items-center justify-center px-4 py-5">
+
+        <div class="uc-login-universe" aria-hidden="true">
+            <div class="uc-login-aura"></div><div class="uc-login-aura purple"></div>
+            <div class="uc-login-stars"></div>
+            <div class="uc-login-orbits"><div class="uc-login-ring"></div><div class="uc-login-ring"></div><div class="uc-login-ring"></div></div>
+        </div>
         {{-- Background Effects --}}
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,.35),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,.35),transparent_35%)]"></div>
 
@@ -39,7 +94,7 @@
 
                 <p class="mt-5 text-slate-300 text-lg max-w-xl">
 
-                    Access your AI-powered campus dashboard,
+                    Access your campus dashboard,
                     mentorship network, job portal,
                     events and smart university ecosystem.
 

@@ -1,6 +1,6 @@
 <x-app-layout>
 <div class="mx-auto max-w-6xl space-y-6 p-6 text-white">
-    <div class="flex flex-wrap items-center justify-between gap-4"><h1 class="text-2xl font-bold">{{ $title }}</h1><a class="rounded-xl bg-indigo-600 px-4 py-3" href="{{ route(auth()->user()->role === 'student' ? 'student.dashboard' : 'alumni.dashboard') }}">Back to Dashboard</a></div>
+    <div class="uc-compact-header flex flex-wrap items-center justify-between gap-4"><h1 class="text-2xl font-bold">{{ $title }}</h1><a class="rounded-xl bg-indigo-600 px-4 py-3" href="{{ route(auth()->user()->role === 'student' ? 'student.dashboard' : 'alumni.dashboard') }}">Back to Dashboard</a></div>
     @if($section === 'mentorships' && auth()->user()->role === 'alumni')
         <div class="flex gap-4"><a href="{{ route('dashboard.activity',['section'=>'mentorships']) }}" class="rounded-xl bg-slate-800 px-4 py-2">My Mentees</a><a href="{{ route('dashboard.activity',['section'=>'mentorships','status'=>'pending']) }}" class="rounded-xl bg-slate-800 px-4 py-2">Pending Requests</a></div>
     @endif

@@ -21,6 +21,7 @@ class DonationController extends Controller
                 })
                 ->when(Schema::hasColumn('donations', 'archived_at'), fn ($q) => $q->whereNull('archived_at'));
             $stats = ['total'=>(clone $query)->count(), 'approved'=>(clone $query)->where('status','approved')->count(), 'pending'=>(clone $query)->where('status','pending')->count()];
+            if (auth()->user()->isAdmin() && in_array(request('status'), ['pending','approved','rejected'], true)) $query->where('status',request('status'));
             $donations = $query->latest()->orderByDesc('id')->paginate(6)->withQueryString();
         } else {
             $stats = ['total'=>0, 'approved'=>0, 'pending'=>0];
@@ -39,6 +40,8 @@ class DonationController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:100'],
+                'bkash_number' => ['nullable','string','regex:/^(?:\+?88)?01[3-9][0-9]{8}$/'],
+                'nagad_number' => ['nullable','string','regex:/^(?:\+?88)?01[3-9][0-9]{8}$/'],
             'target_amount' => ['required', 'numeric', 'min:1'],
             'description' => ['nullable', 'string', 'max:3000'],
             'deadline' => ['nullable', 'date'],
@@ -108,24 +111,6 @@ class DonationController extends Controller
 
     public function destroy(Donation $donation)
     {
-        abort_unless(
-            auth()->check() &&
-            (auth()->user()->isAdmin() || $donation->user_id === auth()->id()),
-            403
-        );
-
-        if ($donation->image) {
-         app(
-            EncryptedFileService::class
-           )->delete(
-           $donation->image
-           );
-        }
-
-        $donation->delete();
-
-        return redirect()
-            ->route('donations.index')
-            ->with('success', 'Donation campaign deleted successfully.');
+        return app(PostManagementController::class)->destroy('donation', $donation->id);
     }
 }

@@ -105,6 +105,10 @@ class JobController extends Controller
         }
 
 
+        if (in_array($user->role, ['admin','super_admin'], true) && in_array($request->input('status'), ['pending','approved','rejected'], true)) {
+            $query->where('status', $request->input('status'));
+        }
+
         $jobs = $query
             ->latest()
             ->orderByDesc('id')
@@ -659,45 +663,8 @@ class JobController extends Controller
 
      public function destroy(JobPosting $job)
 {
-    $user = auth()->user();
-
-    abort_unless(
-        in_array(
-            $user->role,
-            [
-                'admin',
-                'super_admin',
-            ],
-            true
-        ),
-        403,
-        'Only Admin or Super Admin can delete job posts.'
-    );
-
-    $title = $job->title;
-
-    $job->delete();
-
-    NotificationService::management(
-        'job_deleted',
-        'Job Deleted',
-        $user->name .
-            ' deleted the job post "' .
-            $title .
-            '".',
-        null,
-        'medium',
-        null,
-        $user
-    );
-
-    return redirect()
-        ->route('jobs.index')
-        ->with(
-            'success',
-            'Job deleted successfully.'
-        );
-}
+        return app(PostManagementController::class)->destroy('job', $job->id);
+    }
     /*
     |--------------------------------------------------------------------------
     | My Posted Jobs

@@ -1,27 +1,26 @@
 <!DOCTYPE html>
-<html class="dark" lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+<html class="dark" style="color-scheme: dark; background-color: #020617;" lang="{{ str_replace('_', '-', app()->getLocale()) }}"
       x-data="{
           mobileMenuOpen: false,
           profileMenuOpen: false,
-          moreMenuOpen: false,
-          darkMode: document.documentElement.classList.contains('dark')
+          moreMenuOpen: false
       }"
-      x-init="$watch('darkMode', val => { document.documentElement.style.colorScheme = val ? 'dark' : 'light'; try { localStorage.setItem('darkMode', String(val)); } catch (error) {} })"
-      :class="{ 'dark': darkMode }">
+>
 
 <head>
-    <script>
-        // Apply the saved theme before styles or page content can render.
-        (() => {
-            let dark = true;
-            try { dark = localStorage.getItem('darkMode') !== 'false'; } catch (error) {}
-            document.documentElement.classList.toggle('dark', dark);
-            document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-        })();
-    </script>
     <style>
-        html { background: #f8fafc; }
-        html.dark { background: #020617; color-scheme: dark; }
+        html { background: #020617; color-scheme: dark; }
+
+        /* Role-sized navigation keeps every feature visible without clipping. */
+        .uc-desktop-nav { display: flex !important; min-width: 0; }
+        .uc-nav-row { flex-wrap: wrap; gap: 5px; }
+        .uc-desktop-nav .uc-nav { flex: 1 1 auto; min-height: 38px; padding: 0 var(--uc-nav-padding, 10px); font-size: var(--uc-nav-font, 12px); }
+        .uc-mobile-menu-btn { display: none !important; }
+        @media (max-width: 1023px) {
+            .uc-topbar-inner { flex-wrap: wrap; justify-content: space-between; }
+            .uc-desktop-nav { order: 3; flex-basis: 100%; width: 100%; }
+            .uc-desktop-nav .uc-nav { min-height: 36px; font-size: 11px; padding: 0 9px; }
+        }
     </style>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,7 +39,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
 
     <style>
         * {
@@ -1057,6 +1056,8 @@
             }
         }
     </style>
+    @include('layouts.partials.navbar-style')
+    @include('layouts.partials.content-width-style')
 </head>
 
 <body class="font-sans antialiased text-slate-900 dark:text-white overflow-x-hidden">
@@ -1068,6 +1069,9 @@
     $user = Auth::user();
 
     $role = $user?->role;
+    $pendingConversionCount = in_array($role, ['admin','super_admin'], true) && \Illuminate\Support\Facades\Schema::hasTable('alumni_conversion_requests')
+        ? \App\Models\AlumniConversionRequest::where('status','pending')->count() : 0;
+
 
     /*
     |--------------------------------------------------------------------------
@@ -1162,10 +1166,7 @@
             ? route('newsfeed.index')
             : '#';
 
-    $askAiRoute =
-        Route::has('ask-ai.index')
-            ? route('ask-ai.index')
-            : '#';
+
 
     $jobsRoute =
         Route::has('jobs.index')
@@ -1193,7 +1194,7 @@
     |--------------------------------------------------------------------------
     |
     | Desktop:
-    | Dashboard | Newsfeed | Ask AI | Mentors | Jobs | More
+    | Dashboard | Newsfeed | Mentors | Jobs | More
     |
     | More:
     | Events | Donations | Messages
@@ -1286,15 +1287,15 @@
     | Dashboard | Newsfeed | Mentors | Jobs | Messages | More
     |
     | More:
-    | Ask AI | Events | Donations
+    | Events | Donations
     |
     */
 
     elseif ($role === 'alumni') {
 
         $mentorRoute =
-            Route::has('mentors.requests')
-                ? route('mentors.requests')
+            Route::has('mentors.index')
+                ? route('mentors.index')
                 : '#';
 
         $primaryNavItems = [
@@ -1317,7 +1318,7 @@
             ),
 
             $makeNavItem(
-                'Mentors',
+                'Mentorships',
                 'fa-user-tie',
                 $mentorRoute,
                 request()->routeIs('mentors.*')
@@ -1339,6 +1340,7 @@
         ];
 
         $moreNavItems = [
+            $makeNavItem('Requests', 'fa-handshake', route('mentors.requests'), request()->routeIs('mentors.requests')),
 
             $makeNavItem(
                 'Events',
@@ -1572,11 +1574,7 @@
             return $item['active'];
         });
 
-    if ($user) {
-        $archiveNav = $makeNavItem('Archive / Requests', 'fa-box-archive', route('posts.archive'), request()->routeIs('posts.archive', 'posts.extension.*'));
-        $primaryNavItems[] = $archiveNav;
-        $mobileNavItems[] = $archiveNav;
-    }
+
 @endphp
 
 <div class="uc-app-shell relative overflow-hidden">
@@ -1637,7 +1635,10 @@
          TOP NAVBAR
     ============================================================ --}}
 
-    <header class="uc-topbar-wrap">
+    <header class="uc-topbar-wrap"
+            x-data="{ scrolled: window.scrollY > 8 }"
+            @scroll.window.passive="scrolled = window.scrollY > 8"
+            :class="{ 'uc-navbar-scrolled': scrolled }">
 
         <div class="uc-topbar px-3 xl:px-4 py-3">
 
@@ -1683,7 +1684,7 @@
                      DESKTOP ROLE-BASED NAVIGATION
                 ================================================= --}}
 
-                <nav class="uc-desktop-nav">
+                <nav class="uc-desktop-nav" style="--uc-nav-font: {{ count($primaryNavItems) <= 8 ? '11.5px' : '10.5px' }}; --uc-nav-padding: {{ count($primaryNavItems) <= 8 ? '10px' : '7px' }};">
 
                     <div class="uc-nav-row">
 
@@ -1831,6 +1832,11 @@
                 ================================================= --}}
 
                 <div class="uc-right-actions">
+                    <a href="{{ route('notifications.index') }}" class="uc-notification-link" aria-label="Notifications{{ $unreadCount ? ' ('.$unreadCount.' unread)' : '' }}" title="Notifications">
+                        <i class="fas fa-bell" aria-hidden="true"></i>
+                        @if($unreadCount)<span>{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>@endif
+                    </a>
+
 
                     {{-- =============================================
                          PROFILE DROPDOWN
@@ -2005,109 +2011,6 @@
 
                             </div>
 
-                            {{-- Notifications --}}
-
-                            <a
-                                href="{{
-                                    Route::has('notifications.index')
-                                        ? route('notifications.index')
-                                        : '#'
-                                }}"
-                                class="
-                                    uc-dropdown-link
-                                    relative
-                                "
-                            >
-
-                                <i
-                                    class="
-                                        fas
-                                        fa-bell
-                                        w-5
-                                        text-center
-                                        text-pink-300
-                                    ">
-                                </i>
-
-                                <span>
-                                    Notifications
-                                </span>
-
-                                @if($unreadCount > 0)
-
-                                    <span
-                                        class="
-                                            ml-auto
-                                            min-w-[20px]
-                                            h-5
-                                            px-2
-                                            rounded-full
-                                            bg-red-500
-                                            text-[10px]
-                                            font-black
-                                            text-white
-                                            flex
-                                            items-center
-                                            justify-center
-                                        "
-                                    >
-
-                                        {{
-                                            $unreadCount > 99
-                                                ? '99+'
-                                                : $unreadCount
-                                        }}
-
-                                    </span>
-
-                                @endif
-
-                            </a>
-
-                            {{-- Dark / Light Mode --}}
-
-                            <button
-                                type="button"
-                                @click="darkMode = !darkMode"
-                                class="
-                                    uc-dropdown-link
-                                    w-full
-                                    text-left
-                                "
-                            >
-
-                                <i
-                                    x-show="!darkMode"
-                                    class="
-                                        fas
-                                        fa-moon
-                                        w-5
-                                        text-center
-                                        text-cyan-300
-                                    ">
-                                </i>
-
-                                <i
-                                    x-show="darkMode"
-                                    class="
-                                        fas
-                                        fa-sun
-                                        w-5
-                                        text-center
-                                        text-yellow-300
-                                    ">
-                                </i>
-
-                                <span x-show="!darkMode">
-                                    Dark Mode
-                                </span>
-
-                                <span x-show="darkMode">
-                                    Light Mode
-                                </span>
-
-                            </button>
-
                             {{-- Profile Settings --}}
 
                             <a
@@ -2135,122 +2038,19 @@
 
                             </a>
 
-                            {{-- Dashboard --}}
-
-                            <a
-                                href="{{ $dashboardRoute }}"
-                                class="uc-dropdown-link"
-                            >
-
-                                <i
-                                    class="
-                                        fas
-                                        fa-gauge-high
-                                        w-5
-                                        text-center
-                                        text-indigo-300
-                                    ">
-                                </i>
-
-                                <span>
-                                    My Dashboard
-                                </span>
-
+                            <a href="{{ route('posts.archive') }}" class="uc-dropdown-link {{ request()->routeIs('posts.archive', 'posts.extension.*') ? 'bg-white/10' : '' }}">
+                                <i class="fas fa-box-archive w-5 text-center text-indigo-300" aria-hidden="true"></i>
+                                <span>Archive/Requests</span>
                             </a>
+                            <div class="my-2 border-t border-white/10"></div>
 
-                            <div
-                                class="
-                                    my-2
-                                    border-t
-                                    border-white/10
-                                ">
-                            </div>
-
-                            {{-- =====================================
-                                 STUDENT ALUMNI CONVERSION
-                            ===================================== --}}
-
-                            @if(
-                                auth()->check()
-                                &&
-                                auth()->user()->role === 'student'
-                            )
-
-                                <a
-                                    href="{{
-                                        Route::has('alumni-conversion.create')
-                                            ? route('alumni-conversion.create')
-                                            : '#'
-                                    }}"
-                                    class="uc-dropdown-link"
-                                >
-
-                                    <i
-                                        class="
-                                            fas
-                                            fa-user-graduate
-                                            w-5
-                                            text-center
-                                            text-cyan-300
-                                        ">
-                                    </i>
-
-                                    <span>
-                                        Apply for Alumni Status
-                                    </span>
-
+                            @if(in_array($role, ['admin','super_admin'], true))
+                                <a href="{{ route('alumni-conversion.index') }}" class="uc-dropdown-link {{ request()->routeIs('alumni-conversion.*') ? 'bg-white/10' : '' }}">
+                                    <i class="fas fa-user-graduate w-5 text-center text-emerald-300" aria-hidden="true"></i>
+                                    <span>Alumni Conversion Requests</span>
+                                    @if($pendingConversionCount)<span class="ml-auto rounded-full bg-amber-400/15 px-2 py-1 text-[10px] font-bold text-amber-300">{{ $pendingConversionCount }}</span>@endif
                                 </a>
-
                             @endif
-
-                            {{-- =====================================
-                                 ADMIN ALUMNI CONVERSION MANAGEMENT
-                            ===================================== --}}
-
-                            @if(
-                                auth()->check()
-                                &&
-                                in_array(
-                                    auth()->user()->role,
-                                    ['admin', 'super_admin']
-                                )
-                            )
-
-                                <a
-                                    href="{{
-                                        Route::has('alumni-conversion.index')
-                                            ? route('alumni-conversion.index')
-                                            : '#'
-                                    }}"
-                                    class="uc-dropdown-link"
-                                >
-
-                                    <i
-                                        class="
-                                            fas
-                                            fa-users-gear
-                                            w-5
-                                            text-center
-                                            text-emerald-300
-                                        ">
-                                    </i>
-
-                                    <span>
-                                        Alumni Conversion Requests
-                                    </span>
-
-                                </a>
-
-                            @endif
-
-                            <div
-                                class="
-                                    my-2
-                                    border-t
-                                    border-white/10
-                                ">
-                            </div>
-
                             {{-- Logout --}}
 
                             <form
@@ -2634,66 +2434,6 @@
                     "
                 >
 
-                    {{-- Notifications --}}
-
-                    <a
-                        href="{{
-                            Route::has('notifications.index')
-                                ? route('notifications.index')
-                                : '#'
-                        }}"
-                        class="
-                            uc-nav
-                            w-full
-                            justify-start
-                            mb-2
-                        "
-                    >
-
-                        <i
-                            class="
-                                fas
-                                fa-bell
-                                w-5
-                                text-center
-                            ">
-                        </i>
-
-                        <span>
-                            Notifications
-                        </span>
-
-                        @if($unreadCount > 0)
-
-                            <span
-                                class="
-                                    ml-auto
-                                    min-w-[20px]
-                                    h-5
-                                    px-2
-                                    rounded-full
-                                    bg-red-500
-                                    text-[10px]
-                                    font-black
-                                    text-white
-                                    flex
-                                    items-center
-                                    justify-center
-                                "
-                            >
-
-                                {{
-                                    $unreadCount > 99
-                                        ? '99+'
-                                        : $unreadCount
-                                }}
-
-                            </span>
-
-                        @endif
-
-                    </a>
-
                     {{-- Profile --}}
 
                     <a
@@ -2725,135 +2465,23 @@
                         </i>
 
                         <span>
-                            Profile
+                            Profile Settings
                         </span>
 
                     </a>
 
-                    {{-- Dark / Light Mode --}}
+                    <a href="{{ route('posts.archive') }}" class="uc-nav w-full justify-start mb-2 {{ request()->routeIs('posts.archive', 'posts.extension.*') ? 'uc-active' : '' }}">
+                        <i class="fas fa-box-archive w-5 text-center" aria-hidden="true"></i>
+                        <span>Archive/Requests</span>
+                    </a>
 
-                    <button
-                        type="button"
-                        @click="darkMode = !darkMode"
-                        class="
-                            uc-nav
-                            w-full
-                            justify-start
-                            mb-2
-                        "
-                    >
-
-                        <i
-                            x-show="!darkMode"
-                            class="
-                                fas
-                                fa-moon
-                                w-5
-                                text-center
-                            ">
-                        </i>
-
-                        <i
-                            x-show="darkMode"
-                            class="
-                                fas
-                                fa-sun
-                                w-5
-                                text-center
-                            ">
-                        </i>
-
-                        <span x-show="!darkMode">
-                            Dark Mode
-                        </span>
-
-                        <span x-show="darkMode">
-                            Light Mode
-                        </span>
-
-                    </button>
-
-                    {{-- =============================================
-                         MOBILE ALUMNI CONVERSION
-                    ============================================= --}}
-
-                    @if(
-                        auth()->check()
-                        &&
-                        auth()->user()->role === 'student'
-                    )
-
-                        <a
-                            href="{{
-                                Route::has('alumni-conversion.create')
-                                    ? route('alumni-conversion.create')
-                                    : '#'
-                            }}"
-                            class="
-                                uc-nav
-                                w-full
-                                justify-start
-                                mb-2
-                            "
-                        >
-
-                            <i
-                                class="
-                                    fas
-                                    fa-user-graduate
-                                    w-5
-                                    text-center
-                                ">
-                            </i>
-
-                            <span>
-                                Alumni Application
-                            </span>
-
+                    @if(in_array($role, ['admin','super_admin'], true))
+                        <a href="{{ route('alumni-conversion.index') }}" class="uc-nav w-full justify-start mb-2">
+                            <i class="fas fa-user-graduate w-5 text-center" aria-hidden="true"></i>
+                            <span>Alumni Conversion Requests</span>
+                            @if($pendingConversionCount)<span class="ml-auto text-amber-300">{{ $pendingConversionCount }}</span>@endif
                         </a>
-
                     @endif
-
-                    @if(
-                        auth()->check()
-                        &&
-                        in_array(
-                            auth()->user()->role,
-                            ['admin', 'super_admin']
-                        )
-                    )
-
-                        <a
-                            href="{{
-                                Route::has('alumni-conversion.index')
-                                    ? route('alumni-conversion.index')
-                                    : '#'
-                            }}"
-                            class="
-                                uc-nav
-                                w-full
-                                justify-start
-                                mb-2
-                            "
-                        >
-
-                            <i
-                                class="
-                                    fas
-                                    fa-users-gear
-                                    w-5
-                                    text-center
-                                ">
-                            </i>
-
-                            <span>
-                                Alumni Requests
-                            </span>
-
-                        </a>
-
-                    @endif
-
                     {{-- Logout --}}
 
                     <form
@@ -2906,6 +2534,12 @@
     <main
         class="
             uc-main-area
+            {{ !request()->routeIs('newsfeed.*') ? 'uc-constrained-page' : '' }}
+            {{ !request()->routeIs('newsfeed.*') ? 'uc-bannerless' : '' }}
+            {{ auth()->user()?->role === 'alumni' && !request()->routeIs('newsfeed.*') ? 'uc-alumni-compact' : '' }}
+            {{ auth()->user()?->role === 'student' && !request()->routeIs('newsfeed.*') ? 'uc-student-compact' : '' }}
+            {{ auth()->user()?->role === 'admin' && !request()->routeIs('newsfeed.*') ? 'uc-admin-compact' : '' }}
+            {{ auth()->user()?->role === 'super_admin' && !request()->routeIs('newsfeed.*') ? 'uc-superadmin-compact' : '' }}
             relative
             z-10
             px-4
@@ -2934,5 +2568,7 @@
 
 </div>
 
+@include('layouts.partials.page-actions-style')
+<x-incoming-call />
 </body>
 </html>

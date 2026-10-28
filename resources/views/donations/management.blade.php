@@ -1,6 +1,6 @@
 <x-app-layout>
 <div class="mx-auto max-w-7xl space-y-6 p-6 text-white">
-    <div class="flex flex-wrap items-center justify-between gap-4"><div><h1 class="text-2xl font-bold">Donation Management</h1><p class="mt-2 text-slate-300">{{ $donation->title }}</p></div><a href="{{ route('donations.show', $donation) }}" class="rounded-xl bg-indigo-600 px-4 py-3">Back to Campaign</a></div>
+    <div class="uc-compact-header flex flex-wrap items-center justify-between gap-4"><div><h1 class="text-2xl font-bold">Donation Management</h1><p class="uc-header-context mt-2 text-slate-300">{{ $donation->title }}</p></div><a href="{{ route('donations.show', $donation) }}" class="rounded-xl bg-indigo-600 px-4 py-3">Back to Campaign</a></div>
     @if(session('success'))<p role="status" class="text-green-300">{{ session('success') }}</p>@endif
     @if(session('error'))<p class="text-red-400">{{ session('error') }}</p>@endif
     @if($errors->any())<p class="text-red-400">{{ $errors->first() }}</p>@endif

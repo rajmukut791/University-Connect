@@ -981,6 +981,27 @@
                 transform: none !important;
             }
         }
+
+        /* Compact desktop composition; small screens retain natural scrolling. */
+        @media (min-width: 900px) {
+            .uc-nav { margin-top: 12px; padding: 10px 14px; }
+            .uc-hero { min-height: calc(100svh - 90px); grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 42px); padding: 22px 0; }
+            .uc-title { margin-top: 16px; font-size: clamp(2.5rem, 4.2vw, 4.3rem); line-height: 1.02; }
+            .uc-description { margin-top: 18px; font-size: 14px; line-height: 1.7; }
+            .uc-access { margin-top: 18px; padding: 13px 15px; border-radius: 18px; }
+            .uc-access .text-sm { font-size: 12px; line-height: 1.6; }
+            .uc-visual-wrap { min-height: 0; }
+            .uc-network { width: min(100%, 530px, calc(100svh - 120px)); }
+        }
+        @media (min-width: 900px) and (max-height: 700px) {
+            .uc-title { font-size: clamp(2.25rem, 3.8vw, 3.4rem); }
+            .uc-hero { padding: 14px 0; }
+            .uc-kicker { font-size: 9px; padding: 7px 10px; }
+        }
+        body { overflow-x: clip; }
+        .uc-welcome-header { position: sticky; top: 0; z-index: 1000; padding-top: 12px; }
+        .uc-welcome-header .uc-nav { margin-top: 0; }
+        .uc-welcome-header.uc-scrolled .uc-nav { background: rgba(9,15,31,.9); backdrop-filter: blur(20px); border-color: rgba(165,180,252,.2); }
     </style>
 </head>
 
@@ -991,7 +1012,7 @@
     <div class="uc-ambient c"></div>
     <div id="uc-cursor-glow"></div>
 
-    <header class="uc-shell">
+    <header class="uc-shell uc-welcome-header">
         <nav class="uc-nav flex items-center justify-between gap-4">
             <div class="flex items-center gap-3 min-w-0">
                 <div class="uc-brand-icon shrink-0">
@@ -1003,7 +1024,7 @@
                         University Connect
                     </p>
                     <p class="uc-brand-subtitle mt-0.5 text-[10px] font-bold text-slate-500">
-                        AI Powered Campus Network
+                        University Campus Network
                     </p>
                 </div>
             </div>
@@ -1465,6 +1486,14 @@
 
             document.body.appendChild(fragment);
         }
+    })();
+</script>
+<script>
+    (() => {
+        const header = document.querySelector('.uc-welcome-header');
+        const update = () => header?.classList.toggle('uc-scrolled', window.scrollY > 8);
+        window.addEventListener('scroll', update, { passive: true });
+        update();
     })();
 </script>
 </body>

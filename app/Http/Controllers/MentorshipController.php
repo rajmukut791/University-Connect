@@ -18,13 +18,14 @@ class MentorshipController extends Controller
         $student = auth()->user();
 
         abort_unless(
-            $student !== null && $student->isStudent(),
+            $student !== null && in_array($student->role, ['student', 'alumni'], true) && $student->is_active && !$student->is_blocked,
             403,
-            'Only students can view the mentor network.'
+            'Only students and alumni can view the mentor network.'
         );
 
         $query = User::query()
             ->where('role', 'alumni')
+            ->where('id', '!=', $student->id)
             ->where('is_active', true)
             ->where('is_blocked', false);
 
@@ -86,7 +87,7 @@ class MentorshipController extends Controller
             ->keyBy('mentor_id');
 
         $departments = User::query()
-            ->where('role', 'alumni')
+            ->whereIn('role', ['student', 'alumni'])
             ->where('is_active', true)
             ->where('is_blocked', false)
             ->whereNotNull('department')
@@ -116,9 +117,9 @@ class MentorshipController extends Controller
         $student = auth()->user();
 
         abort_unless(
-            $student !== null && $student->isStudent(),
+            $student !== null && in_array($student->role, ['student', 'alumni'], true) && $student->is_active && !$student->is_blocked,
             403,
-            'Only students can request mentorship.'
+            'Only students and alumni can request mentorship.'
         );
 
         abort_unless(
@@ -264,9 +265,9 @@ class MentorshipController extends Controller
         $student = auth()->user();
 
         abort_unless(
-            $student !== null && $student->isStudent(),
+            $student !== null && in_array($student->role, ['student', 'alumni'], true) && $student->is_active && !$student->is_blocked,
             403,
-            'Only students can cancel mentorship requests.'
+            'Only students and alumni can cancel mentorship requests.'
         );
 
         $mentorship = Mentorship::query()

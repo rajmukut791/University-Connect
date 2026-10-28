@@ -19,14 +19,17 @@ class PostLifecycleController extends Controller
 
     public function index(Request $request)
     {
-        $type = $request->validate(['type' => ['nullable', 'in:job,event,donation']])['type'] ?? 'job';
+        $filters = $request->validate(['type'=>['nullable','in:job,event,donation'], 'status'=>['nullable','in:all,pending,approved,rejected']]);
+        $type = $filters['type'] ?? 'job';
+        $status = $filters['status'] ?? 'all';
         $management = in_array($request->user()->role, ['admin', 'super_admin'], true);
-        $owner = match ($type) { 'job' => 'posted_by', 'event' => 'created_by', 'donation' => 'user_id' };
-        $posts = (PostLifecycleService::TYPES[$type])::whereNotNull('archived_at')
-            ->where($owner, $request->user()->id)->latest('archived_at')->paginate(20)->withQueryString();
-        $requests = PostExtensionRequest::with('user')->where('post_type', $type)
-            ->when(!$management, fn ($q) => $q->where('user_id', $request->user()->id))->latest()->paginate(20, ['*'], 'requests_page')->withQueryString();
-        return view('posts.archive', compact('type', 'posts', 'requests', 'management'));
+        $owner = match ($type) { 'job'=>'posted_by', 'event'=>'created_by', 'donation'=>'user_id' };
+        $posts = (PostLifecycleService::TYPES[$type])::whereNotNull('archived_at')->where($owner,$request->user()->id)->latest('archived_at')->paginate(20)->withQueryString();
+        $query = PostExtensionRequest::where('post_type',$type)->when(!$management, fn ($q) => $q->where('user_id',$request->user()->id));
+        $counts = (clone $query)->selectRaw('status, COUNT(*) AS aggregate')->groupBy('status')->pluck('aggregate','status');
+        $requests = $query->with(['user','reviewer'])->when($status !== 'all', fn ($q) => $q->where('status',$status))->latest()->orderByDesc('id')->paginate(20,['*'],'requests_page')->withQueryString();
+        $requestPosts = (PostLifecycleService::TYPES[$type])::whereIn('id',$requests->pluck('post_id'))->get()->keyBy('id');
+        return view('posts.archive', compact('type','status','posts','requests','management','counts','requestPosts'));
     }
 
     public function archive(string $type, int $id)
@@ -59,11 +62,16 @@ class PostLifecycleController extends Controller
         $reason = $data['reason']; unset($data['reason']);
         $this->validateDates($type, $post, $data);
         DB::transaction(function () use ($post, $type, $data, $reason, $request) {
-            $post->newQuery()->whereKey($post->id)->lockForUpdate()->firstOrFail();
+            $lockedPost = $post->newQuery()->whereKey($post->id)->lockForUpdate()->firstOrFail();
+            $this->validateDates($type, $lockedPost, $data);
+            $originalDates = collect(array_keys($data))->mapWithKeys(function ($field) use ($lockedPost) {
+                $value = $lockedPost->getAttribute($field);
+                return [$field => $value instanceof \DateTimeInterface ? $value->format('Y-m-d') : $value];
+            })->all();
             if (PostExtensionRequest::where('post_type', $type)->where('post_id', $post->id)->where('status', 'pending')->exists()) {
                 throw ValidationException::withMessages(['reason' => 'An extension request is already awaiting review.']);
             }
-            PostExtensionRequest::create(['post_type' => $type, 'post_id' => $post->id, 'user_id' => $request->user()->id, 'dates' => $data, 'reason' => $reason, 'status' => 'pending']);
+            PostExtensionRequest::create(['post_type' => $type, 'post_id' => $post->id, 'user_id' => $request->user()->id, 'dates' => $data, 'original_dates' => $originalDates, 'reason' => $reason, 'status' => 'pending']);
         });
         NotificationService::management('post_extension_requested', ucfirst($type).' Date Extension', $post->title.' — '.$reason,
             route('posts.archive', ['type' => $type]), 'medium', $post, $request->user());
@@ -90,6 +98,7 @@ class PostLifecycleController extends Controller
             abort_unless($extension->status === 'pending', 409, 'This request has already been reviewed.');
             $class = PostLifecycleService::TYPES[$extension->post_type];
             $post = $class::whereKey($extension->post_id)->lockForUpdate()->firstOrFail();
+            abort_if((int)$extension->user_id === (int)$request->user()->id || PostAccess::ownerId($extension->post_type,$post) === (int)$request->user()->id, 403, 'Another administrator must review your own request.');
             if ($data['decision'] === 'approved') {
                 $this->validateDates($extension->post_type, $post, $extension->dates);
                 $dates = $extension->dates;

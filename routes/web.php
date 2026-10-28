@@ -11,15 +11,12 @@ use App\Http\Controllers\JobController;
 use App\Http\Controllers\MentorshipController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ResumeAnalysisController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\DonationContributionController;
 use App\Http\Controllers\DonationManualPaymentController;
 use App\Http\Controllers\NewsfeedController;
 use App\Http\Controllers\FeedActionController;
 use App\Http\Controllers\CallController;
-use App\Http\Controllers\AIController;
-use App\Http\Controllers\AskAIController;
 use App\Http\Controllers\StripeDonationController;
 use App\Http\Controllers\PublicProfileController;
 use App\Http\Controllers\AlumniWorkExperienceController;
@@ -44,6 +41,10 @@ use App\Http\Controllers\SecureFileController;
 */
 
 Route::get('/', function () {
+
+    if (auth()->check() && in_array(auth()->user()->role, ['student', 'alumni', 'admin', 'super_admin'], true)) {
+        return redirect()->route('dashboard')->header('Cache-Control', 'private, no-store');
+    }
 
     $homeStats = [
 
@@ -129,12 +130,6 @@ Route::get(
     '/secure/messages/{message}/attachment',
     [SecureFileController::class, 'messageAttachment']
 )->name('secure.messages.attachment');
-
-
-Route::get(
-    '/secure/resumes/{resumeAnalysis}/file',
-    [SecureFileController::class, 'resume']
-)->name('secure.resumes.file');
     /*
     |--------------------------------------------------------------------------
     | Stripe Donation Routes
@@ -692,7 +687,7 @@ Route::middleware(['role:admin'])
 | Student Routes
 |--------------------------------------------------------------------------
 |
-| Student Dashboard + Student AI Assistant
+| Student Dashboard
 |
 */
 
@@ -715,14 +710,9 @@ Route::middleware(['role:student'])
 
         /*
         |--------------------------------------------------------------------------
-        | Student AI Assistant
+        | Student Dashboard
         |--------------------------------------------------------------------------
         */
-
-        Route::post(
-            '/ai-assistant',
-            [StudentDashboardController::class, 'aiStudyAssistant']
-        )->name('ai-assistant');
 
     });
 
@@ -747,20 +737,9 @@ Route::middleware(['role:student'])
 
     /*
     |--------------------------------------------------------------------------
-    | Ask AI
+    | Community pages
     |--------------------------------------------------------------------------
     */
-
-    Route::get(
-        '/ask-ai',
-        [AskAIController::class, 'index']
-    )->name('ask-ai.index');
-
-
-    Route::post(
-        '/ask-ai/ask',
-        [AskAIController::class, 'ask']
-    )->name('ask-ai.ask');
 
 
     /*
@@ -854,6 +833,8 @@ Route::middleware(['role:student'])
     | Calls
     |--------------------------------------------------------------------------
     */
+
+    Route::get('/calls/incoming', [CallController::class, 'incoming'])->middleware('role:student,alumni')->name('calls.incoming');
 
     Route::post(
         '/calls/start/{user}',
@@ -1007,23 +988,6 @@ Route::middleware([
     Route::middleware(['role:student,alumni'])
         ->group(function () {
 
-            Route::get(
-                '/resume-analyzer',
-                [ResumeAnalysisController::class, 'index']
-            )->name('resume-analyzer.index');
-
-
-            Route::post(
-                '/resume-analyzer',
-                [ResumeAnalysisController::class, 'store']
-            )->name('resume-analyzer.store');
-
-
-            Route::delete(
-                '/resume-analyzer/{resumeAnalysis}',
-                [ResumeAnalysisController::class, 'destroy']
-            )->name('resume-analyzer.destroy');
-
         });
 
 /*
@@ -1141,7 +1105,7 @@ Route::get(
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['role:student'])
+Route::middleware(['role:student,alumni'])
     ->group(function () {
 
         /*

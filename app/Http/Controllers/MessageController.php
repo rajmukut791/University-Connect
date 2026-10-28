@@ -83,6 +83,7 @@ class MessageController extends Controller
 
         $conversations = User::query()
             ->whereIn('id', $partnerIds)
+            ->whereIn('role', $authUser->role === 'student' ? ['alumni'] : ['student', 'alumni'])
             ->where('is_active', true)
             ->where('is_blocked', false)
             ->get()
@@ -117,14 +118,19 @@ class MessageController extends Controller
             ->sortByDesc(fn ($user) => optional($user->last_message)->created_at)
             ->values();
 
+        $approvedUserIds = $approvedUserIds->merge(Mentorship::where('student_id', $authUser->id)->whereIn('status', ['accepted', 'completed'])->pluck('mentor_id'))->unique();
         // New Chat/Search shows only accepted mentor/mentee connections.
         $users = User::query()
-            ->whereIn('id', $approvedUserIds)
+            ->where(function ($q) use ($approvedUserIds, $partnerIds) {
+                $q->whereIn('id', $approvedUserIds)->orWhereIn('id', $partnerIds)->orWhere(fn ($open) => $open->where('role', 'alumni')->where('requires_message_request', false));
+            })
             ->where('id', '!=', $authUser->id)
             ->where('is_active', true)
             ->where('is_blocked', false)
             ->orderBy('name')
             ->get();
+
+        $users = $users->filter(fn ($candidate) => $authUser->canMessage($candidate));
 
         $preferredRole = $authUser->role === 'student' ? 'alumni' : 'student';
 
@@ -291,6 +297,7 @@ class MessageController extends Controller
 
 
 
+        abort_if($authUser->role === 'student' && $user->role === 'student', 403, 'Student-to-student messaging is disabled.');
         $canMessage = $authUser->canMessage($user);
         $hasHistory = Message::where(function ($query) use ($authUser, $user) {
             $query->where('sender_id', $authUser->id)->where('recipient_id', $user->id)->where('deleted_by_sender', false);
@@ -311,111 +318,7 @@ class MessageController extends Controller
 
 
 
-        Message::query()
-
-            ->where(
-
-                'sender_id',
-
-                $user->id
-
-            )
-
-            ->where(
-
-                'recipient_id',
-
-                $authUser->id
-
-            )
-
-            ->where(
-
-                'is_read',
-
-                false
-
-            )
-
-            ->update([
-
-                'is_read' => true,
-
-                'read_at' => now(),
-
-            ]);
-
-
-
-        /*
-
-        |--------------------------------------------------------------------------
-
-        | Mark Related Notifications Read
-
-        |--------------------------------------------------------------------------
-
-        */
-
-
-
-        Notification::query()
-
-            ->where(
-
-                'user_id',
-
-                $authUser->id
-
-            )
-
-            ->where(
-
-                'actor_id',
-
-                $user->id
-
-            )
-
-            ->where(
-
-                'type',
-
-                'message'
-
-            )
-
-            ->where(
-
-                'is_read',
-
-                false
-
-            )
-
-            ->update([
-
-                'is_read' => true,
-
-                'read_at' => now(),
-
-            ]);
-
-
-
-        /*
-
-        |--------------------------------------------------------------------------
-
-        | Conversation Messages
-
-        |--------------------------------------------------------------------------
-
-        */
-
-
-
-        $messages = Message::query()
+        $messagePages = Message::query()
 
             ->where(function ($query) use (
 
@@ -489,9 +392,117 @@ class MessageController extends Controller
 
             })
 
-            ->orderBy('created_at')
+            ->orderByDesc('created_at')->orderByDesc('id')
 
-            ->get();
+            ->paginate(50, ['*'], 'messages_page')->withQueryString();
+        $messages = $messagePages->getCollection()->reverse()->values();
+
+        Message::query()->whereIn('id', $messages->pluck('id'))
+
+            ->where(
+
+                'sender_id',
+
+                $user->id
+
+            )
+
+            ->where(
+
+                'recipient_id',
+
+                $authUser->id
+
+            )
+
+            ->where(
+
+                'is_read',
+
+                false
+
+            )
+
+            ->update([
+
+                'is_read' => true,
+
+                'read_at' => now(),
+
+            ]);
+
+
+
+        /*
+
+        |--------------------------------------------------------------------------
+
+        | Mark Related Notifications Read
+
+        |--------------------------------------------------------------------------
+
+        */
+
+
+
+        $hasUnreadHistory = Message::where('sender_id',$user->id)->where('recipient_id',$authUser->id)->where('deleted_by_receiver',false)->where('is_read',false)->exists();
+        Notification::query()->when($hasUnreadHistory, fn ($q) => $q->whereRaw('1 = 0'))
+
+            ->where(
+
+                'user_id',
+
+                $authUser->id
+
+            )
+
+            ->where(
+
+                'actor_id',
+
+                $user->id
+
+            )
+
+            ->where(
+
+                'type',
+
+                'message'
+
+            )
+
+            ->where(
+
+                'is_read',
+
+                false
+
+            )
+
+            ->update([
+
+                'is_read' => true,
+
+                'read_at' => now(),
+
+            ]);
+
+
+
+        /*
+
+        |--------------------------------------------------------------------------
+
+        | Conversation Messages
+
+        |--------------------------------------------------------------------------
+
+        */
+
+
+
+
 
 
 
@@ -516,7 +527,8 @@ class MessageController extends Controller
                 'user',
 
                 'messages',
-                'canMessage'
+                'canMessage',
+                'messagePages'
 
             )
 

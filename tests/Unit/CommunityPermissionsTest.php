@@ -19,7 +19,7 @@ uses(TestCase::class);
 test('students and alumni cannot alter university-managed identity through crafted requests', function (string $role, string $field) {
     $user = User::create(['name'=>'Verified Name','email'=>$role.'@identity.example.com','role'=>$role,'official_id'=>'OFF100','student_id'=>'ST100','alumni_id'=>'AL100','is_active'=>true,'is_blocked'=>false]);
     $before = $user->fresh()->getAttributes();
-    $this->actingAs($user)->get(route('profile.edit'))->assertOk()->assertDontSee('name="name"',false)->assertSee('can only be changed by an administrator');
+    $this->actingAs($user)->get(route('profile.edit'))->assertOk()->assertDontSee('name="name"',false)->assertSee('Name, email and university ID are managed by an administrator.');
     $this->patch(route('profile.update'),[$field=>'Tampered Identity','phone'=>'01799999999'])->assertSessionHasErrors($field);
     expect($user->fresh()->getAttributes())->toEqual($before);
 })->with(['student','alumni'])->with(['name','email','official_id','student_id','alumni_id']);
@@ -277,11 +277,16 @@ test('each role can open all reachable platform links and button forms use permi
 beforeEach(function () {
     config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:']);
     $this->withoutVite();
-    foreach ([User::class, Message::class, Mentorship::class, JobPosting::class, Event::class, Donation::class, Notification::class, \App\Models\EventParticipant::class, \App\Models\DonationContribution::class, \App\Models\DonationManualPayment::class, \App\Models\PostExtensionRequest::class, \App\Models\VerifiedUser::class, \App\Models\AlumniConversionRequest::class, \App\Models\ResumeAnalysis::class, \App\Models\AlumniWorkExperience::class, \App\Models\AISuggestion::class, \App\Models\JobApplication::class, \App\Models\ActivityLog::class] as $class) {
+    foreach ([User::class, Message::class, Mentorship::class, JobPosting::class, Event::class, Donation::class, Notification::class, \App\Models\EventParticipant::class, \App\Models\DonationContribution::class, \App\Models\DonationManualPayment::class, \App\Models\PostExtensionRequest::class, \App\Models\VerifiedUser::class, \App\Models\AlumniConversionRequest::class, \App\Models\AlumniWorkExperience::class, \App\Models\JobApplication::class, \App\Models\ActivityLog::class, \App\Models\CallSession::class, \App\Models\FeedComment::class, \App\Models\FeedLike::class, \App\Models\FeedShare::class] as $class) {
         $model = new $class;
         Schema::create($model->getTable(), function (Blueprint $table) use ($model) {
             $table->id();
-            foreach ($model->getFillable() as $column) {
+            $columns = $model->getFillable();
+            if (!$columns && in_array($model->getTable(), ['feed_comments','feed_likes','feed_shares'], true)) {
+                $columns = ['user_id','feedable_type','feedable_id'];
+                if ($model->getTable() === 'feed_comments') $columns[] = 'comment';
+            }
+            foreach ($columns as $column) {
                 if (in_array($column, ['is_read', 'is_edited', 'deleted_by_sender', 'deleted_by_receiver'])) {
                     $table->boolean($column)->default(false);
                 } elseif (str_ends_with($column, '_id') || in_array($column, ['is_active', 'is_blocked', 'is_owner', 'email_verified'])) {
@@ -308,7 +313,7 @@ function permissionPost(string $type, User $author)
     return match ($type) {
         'job' => JobPosting::create(['title' => 'Software internship', 'description' => 'Learn programming', 'company_name' => 'Campus', 'location' => 'Dhaka', 'type' => 'internship', 'experience_level' => 'entry', 'requirements' => 'PHP', 'positions_available' => 2, 'contact_email' => 'jobs@example.com', 'posted_by' => $author->id, 'status' => 'approved']),
         'event' => Event::create(['title' => 'Workshop', 'description' => 'Campus workshop', 'type' => 'workshop', 'location' => 'Campus', 'start_date' => '2026-11-01', 'end_date' => '2026-11-01', 'start_time' => '10:00', 'end_time' => '12:00', 'event_date' => '2026-11-01 10:00', 'created_by' => $author->id, 'status' => 'active']),
-        'donation' => Donation::create(['title' => 'Book fund', 'description' => 'Learning support', 'target_amount' => 2000, 'collected_amount' => 500, 'user_id' => $author->id, 'status' => 'approved']),
+        'donation' => Donation::create(['bkash_number'=>'01712345678','nagad_number'=>'01812345678','title' => 'Book fund', 'description' => 'Learning support', 'target_amount' => 2000, 'collected_amount' => 500, 'user_id' => $author->id, 'status' => 'approved']),
     };
 }
 
@@ -836,11 +841,260 @@ test('job view and deletion tolerate missing extension storage without granting 
     }
 })->with(['owner','student','alumni','admin','super_admin']);
 
-test('post lifecycle migration recovers missing tables when archive columns already exist', function () {
+test('post lifecycle repair migration recovers missing tables when archive columns already exist', function () {
     \Illuminate\Support\Facades\Schema::drop('post_extension_requests');
-    $migration=require database_path('migrations/2026_10_13_140000_add_post_archives_and_extension_requests.php');
+    $migration=require database_path('migrations/2026_10_17_120000_repair_post_lifecycle_storage.php');
     $migration->up();
     expect(\Illuminate\Support\Facades\Schema::hasTable('post_extension_requests'))->toBeTrue();
     $migration->up();
     expect(\Illuminate\Support\Facades\Schema::hasColumn('job_postings','archived_at'))->toBeTrue();
 });
+
+
+test('signed in users opening the root URL are sent to their own dashboard', function (string $role) {
+    $user = User::create(['name'=>'Root Visitor','email'=>'root-visitor@example.com','role'=>$role,'is_active'=>true,'is_blocked'=>false]);
+    $this->actingAs($user)->get(route('home'))->assertRedirect(route('dashboard'));
+    $this->get(route('dashboard'))->assertRedirect(route(match($role) {'student'=>'student.dashboard','alumni'=>'alumni.dashboard','admin'=>'admin.dashboard','super_admin'=>'superadmin.dashboard'}));
+    expect(auth()->id())->toBe($user->id);
+})->with(['student','alumni','admin','super_admin']);
+
+test('logged out users see the dark welcome page instead of a dashboard redirect', function () {
+    $this->get(route('home'))->assertOk()->assertViewIs('welcome')->assertSee('class="dark" style="color-scheme: dark;',false)->assertSee('Login');
+});
+
+
+test('alumni request preference controls new student and alumni conversations', function (string $senderRole) {
+    $sender = $senderRole === 'student' ? $this->student : $this->other;
+    $this->mentor->update(['requires_message_request'=>true]);
+    $this->actingAs($sender)->get(route('mentors.index'))->assertOk()->assertSee('Request Required')->assertSee(route('profiles.alumni.show',$this->mentor),false);
+    $this->post(route('messages.store',$this->mentor),['body'=>'Not accepted yet'])->assertForbidden();
+    $this->post(route('mentors.request',$this->mentor),['description'=>'I would like professional guidance'])->assertSessionHasNoErrors();
+    $connection=Mentorship::where('student_id',$sender->id)->where('mentor_id',$this->mentor->id)->firstOrFail();
+    $this->post(route('messages.store',$this->mentor),['body'=>'Still pending'])->assertForbidden();
+    $this->actingAs($this->mentor)->get(route('mentors.requests'))->assertOk()->assertSee(route($senderRole === 'alumni' ? 'profiles.alumni.show' : 'profiles.student.show',$sender),false);
+    $this->patch(route('mentors.accept',$connection))->assertSessionHasNoErrors();
+    $this->actingAs($sender)->post(route('messages.store',$this->mentor),['body'=>'Accepted connection'])->assertRedirect()->assertSessionHasNoErrors();
+    $this->actingAs($this->mentor)->post(route('messages.store',$sender),['body'=>'Welcome'])->assertRedirect()->assertSessionHasNoErrors();
+})->with(['student','alumni']);
+
+test('open alumni accept direct messages and preference updates are alumni only', function () {
+    $this->actingAs($this->mentor)->patch(route('profile.update'),['requires_message_request'=>0])->assertSessionHasNoErrors();
+    expect($this->mentor->fresh()->requires_message_request)->toBeFalse();
+    $this->actingAs($this->student)->get(route('profiles.alumni.show',$this->mentor))->assertOk()->assertSee('Direct messaging available')->assertSee(route('messages.show',$this->mentor),false);
+    $this->post(route('messages.store',$this->mentor),['body'=>'Direct hello'])->assertSessionHasNoErrors()->assertRedirect();
+    $this->actingAs($this->other)->post(route('messages.store',$this->mentor),['body'=>'Peer hello'])->assertSessionHasNoErrors()->assertRedirect();
+    $this->mentor->update(['requires_message_request'=>true]);
+    $this->actingAs($this->student)->post(route('messages.store',$this->mentor),['body'=>'Existing chat continues'])->assertSessionHasNoErrors();
+    $this->patch(route('profile.update'),['requires_message_request'=>0])->assertSessionHasNoErrors();
+    expect($this->student->fresh()->requires_message_request)->toBeNull();
+});
+
+test('students cannot message other students even when old history exists', function () {
+    $peer = User::create(['name'=>'Peer Student','email'=>'peer-student@example.com','role'=>'student','is_active'=>true,'is_blocked'=>false]);
+    Message::create(['sender_id'=>$this->student->id,'recipient_id'=>$peer->id,'content'=>'Legacy student conversation']);
+    $this->actingAs($this->student)->get(route('messages.show',$peer))->assertForbidden();
+    $this->post(route('messages.store',$peer),['body'=>'Blocked'])->assertForbidden();
+    expect($this->student->canMessage($peer))->toBeFalse();
+});
+
+test('chat profile links and individual deletion preserve the other participants copy', function () {
+    permissionMentorship($this,'accepted');
+    $message=Message::create(['sender_id'=>$this->student->id,'recipient_id'=>$this->mentor->id,'content'=>'My individual message']);
+    $this->actingAs($this->student)->get(route('messages.index'))->assertOk()->assertSee(route('profiles.alumni.show',$this->mentor),false)->assertSee('Open Chat');
+    $this->get(route('messages.show',$this->mentor))->assertOk()->assertSee(route('profiles.alumni.show',$this->mentor),false)->assertSee('Delete this message',false);
+    $this->delete(route('messages.destroy',$message))->assertRedirect();
+    expect($message->fresh()->deleted_by_sender)->toBeTrue()->and($message->fresh()->deleted_by_receiver)->toBeFalse();
+    $this->get(route('messages.show',$this->mentor))->assertOk()->assertDontSee('My individual message');
+    $this->actingAs($this->mentor)->get(route('messages.show',$this->student))->assertOk()->assertSee('My individual message');
+});
+
+
+test('AI and resume features are unavailable while normal dashboards still render', function () {
+    $this->actingAs($this->student);
+    foreach (['/ask-ai','/resume-analyzer','/secure/resumes/1/file'] as $url) $this->get($url)->assertNotFound();
+    $this->post('/ask-ai/ask',['question'=>'Anything'])->assertNotFound();
+    $this->get(route('student.dashboard'))->assertOk()->assertDontSee('AI Suggestions');
+    $this->actingAs($this->mentor)->get(route('alumni.dashboard'))->assertOk();
+});
+
+test('blocked users and invalid feed targets cannot submit interactions', function () {
+    $post=permissionPost('job',$this->mentor);
+    $payload=['feedable_type'=>JobPosting::class,'feedable_id'=>$post->id,'comment'=>'A legitimate comment'];
+    $this->actingAs($this->student)->postJson(route('newsfeed.comment'),$payload)->assertRedirect();
+    $this->postJson(route('newsfeed.comment'),array_merge($payload,['feedable_id'=>999999]))->assertNotFound();
+    $this->postJson(route('newsfeed.comment'),array_merge($payload,['feedable_type'=>'invalid']))->assertUnprocessable();
+    $post->update(['archived_at'=>now()]);
+    $this->postJson(route('newsfeed.comment'),$payload)->assertForbidden();
+    $post->update(['archived_at'=>null]);
+    $this->student->update(['is_blocked'=>true]);
+    $this->postJson(route('newsfeed.comment'),$payload)->assertForbidden();
+    expect(\App\Models\FeedComment::count())->toBe(1);
+});
+
+test('repeated failed logins are rate limited', function () {
+    $payload=['login'=>'rate-limited@example.com','password'=>'incorrect'];
+    for ($i=0;$i<5;$i++) $this->postJson(route('login'),$payload)->assertUnprocessable();
+    $this->postJson(route('login'),$payload)->assertStatus(429);
+});
+
+test('incoming calls notify only the receiver and cannot be accepted after rejection', function () {
+    permissionMentorship($this,'accepted');
+    $this->actingAs($this->student)->post(route('calls.start',$this->mentor),['type'=>'audio'])->assertRedirect();
+    $call=\App\Models\CallSession::firstOrFail();
+    expect(Notification::where('user_id',$this->mentor->id)->where('type','call')->exists())->toBeTrue();
+    $this->actingAs($this->mentor)->getJson(route('calls.incoming'))->assertOk()->assertJsonPath('call.id',$call->id);
+    $this->actingAs($this->other)->getJson(route('calls.incoming'))->assertJsonPath('call',null);
+    $this->postJson(route('calls.accept',$call))->assertForbidden();
+    $this->actingAs($this->mentor)->postJson(route('calls.reject',$call))->assertOk();
+    $this->getJson(route('calls.incoming'))->assertJsonPath('call',null);
+    $this->postJson(route('calls.accept',$call))->assertStatus(409);
+});
+
+test('outgoing alumni connections appear in dashboard and archived recommendations are hidden', function () {
+    Mentorship::create(['student_id'=>$this->mentor->id,'mentor_id'=>$this->other->id,'status'=>'accepted','title'=>'Peer connection']);
+    expect(\App\Services\DashboardActivityService::connections($this->mentor)->pluck('id')->all())->toBe([$this->other->id]);
+    $job=permissionPost('job',$this->mentor);$job->update(['archived_at'=>now()]);
+    $event=permissionPost('event',$this->mentor);$event->update(['archived_at'=>now()]);
+    $response=$this->actingAs($this->student)->get(route('student.dashboard'))->assertOk();
+    expect($response->viewData('recommendedJobs')->contains('id',$job->id))->toBeFalse()->and($response->viewData('recommendedEvents')->contains('id',$event->id))->toBeFalse();
+});
+
+test('legacy delete clears the same post extension and image as Manage Post', function () {
+    $job=permissionPost('job',$this->mentor);Storage::disk('public')->put('jobs/audit.png','image');$job->update(['job_image'=>'jobs/audit.png']);
+    \App\Models\PostExtensionRequest::create(['post_type'=>'job','post_id'=>$job->id,'user_id'=>$this->mentor->id,'dates'=>['deadline'=>'2027-01-01'],'reason'=>'Need more time','status'=>'pending']);
+    $admin=User::create(['name'=>'Delete Admin','email'=>'delete-cleanup@example.com','role'=>'admin','is_active'=>true,'is_blocked'=>false]);
+    $this->actingAs($admin)->delete(route('jobs.destroy',$job))->assertRedirect(route('newsfeed.index'));
+    Storage::disk('public')->assertMissing('jobs/audit.png');
+    expect(\App\Models\PostExtensionRequest::where('post_id',$job->id)->count())->toBe(0);
+});
+
+test('campaign receiving numbers are saved and unconfigured methods cannot accept payments', function () {
+    $this->actingAs($this->mentor)->post(route('donations.store'),['title'=>'Configured donation','description'=>'A real collection campaign','target_amount'=>2000,'bkash_number'=>'01722223333','nagad_number'=>'01822223333'])->assertSessionHasNoErrors();
+    $campaign=Donation::latest('id')->firstOrFail();
+    expect($campaign->bkash_number)->toBe('01722223333');
+    $campaign->update(['status'=>'approved','bkash_number'=>null]);
+    $this->actingAs($this->student)->post(route('donations.manual-payment',$campaign),['payment_method'=>'bKash','account_number'=>'01712345678','transaction_id'=>'MISSING-RECEIVER','amount'=>100])->assertSessionHasErrors('payment_method');
+    config(['services.stripe.webhook_secret'=>null]);
+    $this->post(route('donations.stripe.checkout',$campaign),['amount'=>100])->assertSessionHasErrors('amount');
+});
+
+
+test('empty inbox shows connections without an unused conversations panel', function () {
+    permissionMentorship($this, 'accepted');
+    $this->actingAs($this->student)->get(route('messages.index'))
+        ->assertOk()->assertSee('Open Chat')
+        ->assertDontSee('Recent Conversations')
+        ->assertDontSee('No conversations yet')
+        ->assertDontSee('Choose someone and send your first message.');
+});
+
+
+test('conversion application and approval navigation is restored with role boundaries', function (string $role) {
+    $request = \App\Models\AlumniConversionRequest::create(['user_id'=>$this->student->id,'student_id'=>'ST-100','graduation_year'=>'2026','status'=>'pending']);
+    $admin = User::create(['name'=>'Review Admin','email'=>$role.'-review@example.com','role'=>$role,'is_active'=>true,'is_blocked'=>false]);
+    $this->actingAs($this->student)->get(route('student.dashboard'))->assertOk()->assertSee(route('alumni-conversion.create'),false);
+    $this->get(route('alumni-conversion.create'))->assertOk();
+    $this->get(route('alumni-conversion.index'))->assertForbidden();
+    $this->actingAs($admin)->get(route($role === 'admin' ? 'admin.dashboard' : 'superadmin.dashboard'))->assertOk()->assertSee('Pending Reviews')->assertSee(route('alumni-conversion.index'),false);
+    $this->get(route('alumni-conversion.index'))->assertOk()->assertSee('Approve');
+    $this->patch(route('alumni-conversion.approve',$request),[])->assertSessionHasNoErrors()->assertRedirect();
+    expect($this->student->fresh()->role)->toBe('alumni')->and($request->fresh()->status)->toBe('approved');
+})->with(['admin','super_admin']);
+
+test('chat loads recent messages first and preserves access to older history', function () {
+    permissionMentorship($this,'accepted');
+    Message::create(['sender_id'=>$this->student->id,'recipient_id'=>$this->mentor->id,'content'=>'Oldest history entry']);
+    for ($i=0; $i<50; $i++) Message::create(['sender_id'=>$this->student->id,'recipient_id'=>$this->mentor->id,'content'=>'Recent entry '.$i]);
+    $this->actingAs($this->student)->get(route('messages.show',$this->mentor))->assertOk()->assertSee('Older messages')->assertDontSee('Oldest history entry');
+    $this->get(route('messages.show',[$this->mentor,'messages_page'=>2]))->assertOk()->assertSee('Oldest history entry')->assertSee('Latest messages');
+    $this->actingAs($this->other)->get(route('messages.show',[$this->student,'messages_page'=>2]))->assertForbidden();
+});
+
+test('feed server pages can retrieve posts older than the previous sixty item cap', function () {
+    $oldest = permissionPost('job',$this->mentor); $oldest->update(['title'=>'Earliest campus job']);
+    for ($i=0; $i<60; $i++) permissionPost('job',$this->mentor)->update(['title'=>'Current opportunity '.$i]);
+    $this->actingAs($this->student)->get(route('newsfeed.index'))->assertOk()->assertSee('Older posts')->assertDontSee('Earliest campus job');
+    $this->get(route('newsfeed.index',['feed_page'=>4]))->assertOk()->assertSee('Earliest campus job')->assertSee('Newer posts');
+});
+
+test('notification bell remains available without loading alpine twice', function (string $role) {
+    $viewer = User::create(['name'=>'Viewer','email'=>$role.'-nav@example.com','role'=>$role,'is_active'=>true,'is_blocked'=>false]);
+    $this->actingAs($viewer)->get(route('profile.edit'))->assertOk()->assertSee(route('notifications.index'),false)->assertDontSee('cdn.jsdelivr.net/npm/alpinejs',false);
+})->with(['student','alumni','admin','super_admin']);
+
+
+test('paginated chat marks only visible received messages read', function () {
+    permissionMentorship($this,'accepted');
+    $old = Message::create(['sender_id'=>$this->mentor->id,'recipient_id'=>$this->student->id,'content'=>'Unread old history','is_read'=>false]);
+    for ($i=0; $i<50; $i++) Message::create(['sender_id'=>$this->mentor->id,'recipient_id'=>$this->student->id,'content'=>'New unread '.$i,'is_read'=>false]);
+    $this->actingAs($this->student)->get(route('messages.show',$this->mentor))->assertOk();
+    expect($old->fresh()->is_read)->toBeFalse();
+    expect(Message::where('recipient_id',$this->student->id)->where('is_read',true)->count())->toBe(50);
+    $this->get(route('messages.show',[$this->mentor,'messages_page'=>2]))->assertOk();
+    expect($old->fresh()->is_read)->toBeTrue();
+});
+
+test('rejected conversion feedback remains visible when applying again', function () {
+    \App\Models\AlumniConversionRequest::create(['user_id'=>$this->student->id,'status'=>'rejected','admin_notes'=>'Please upload the graduation certificate.']);
+    $this->actingAs($this->student)->get(route('alumni-conversion.create'))->assertOk()->assertSee('Previous Application: Rejected')->assertSee('Please upload the graduation certificate.');
+});
+
+
+test('conversion review account menu is visible only to administrators', function (string $role) {
+    $viewer = User::create(['name'=>'Menu Reviewer','email'=>$role.'-conversion-menu@example.com','role'=>$role,'is_active'=>true,'is_blocked'=>false]);
+    $response = $this->actingAs($viewer)->get(route('profile.edit'))->assertOk();
+    if (in_array($role,['admin','super_admin'],true)) {
+        $response->assertSee('Alumni Conversion Requests')->assertSee(route('alumni-conversion.index'),false);
+    } else {
+        $response->assertDontSee('Alumni Conversion Requests');
+    }
+})->with(['student','alumni','admin','super_admin']);
+
+test('processed conversion cannot be approved or rejected again', function (string $decision) {
+    $admin = User::create(['name'=>'Reviewer','email'=>$decision.'-reviewer@example.com','role'=>'super_admin','is_active'=>true,'is_blocked'=>false]);
+    $application = \App\Models\AlumniConversionRequest::create(['user_id'=>$this->student->id,'student_id'=>'S-900','graduation_year'=>'2026','status'=>'pending']);
+    $this->actingAs($admin)->patch(route('alumni-conversion.'.$decision,$application),['admin_notes'=>'Reviewed graduation documents.'])->assertSessionHasNoErrors()->assertRedirect();
+    $status = $application->fresh()->status;
+    $alumniId = $this->student->fresh()->alumni_id;
+    $notifications = Notification::count();
+    foreach (['approve','reject'] as $again) {
+        $this->patch(route('alumni-conversion.'.$again,$application),['admin_notes'=>'Repeated action'])->assertSessionHas('error')->assertRedirect();
+    }
+    expect($application->fresh()->status)->toBe($status)->and($this->student->fresh()->alumni_id)->toBe($alumniId)->and(Notification::count())->toBe($notifications);
+    expect($this->student->fresh()->role)->toBe($decision === 'approve' ? 'alumni' : 'student');
+})->with(['approve','reject']);
+
+test('conversion rejection requires feedback and unavailable students cannot be approved', function () {
+    $admin = User::create(['name'=>'Reviewer','email'=>'blocked-conversion-review@example.com','role'=>'admin','is_active'=>true,'is_blocked'=>false]);
+    $application = \App\Models\AlumniConversionRequest::create(['user_id'=>$this->student->id,'status'=>'pending']);
+    $this->actingAs($admin)->patch(route('alumni-conversion.reject',$application),[])->assertSessionHasErrors('admin_notes');
+    $this->student->update(['is_blocked'=>true]);
+    $this->patch(route('alumni-conversion.approve',$application),[])->assertSessionHas('error');
+    expect($application->fresh()->status)->toBe('pending')->and($this->student->fresh()->role)->toBe('student');
+});
+
+
+test('extension status filters preserve owner boundaries and reviewer history', function () {
+    $post = permissionPost('donation',$this->mentor);
+    $reviewer = User::create(['name'=>'Extension Reviewer','email'=>'extension-reviewer@example.com','role'=>'admin','is_active'=>true,'is_blocked'=>false]);
+    $extension = \App\Models\PostExtensionRequest::create(['post_type'=>'donation','post_id'=>$post->id,'user_id'=>$this->mentor->id,'dates'=>['deadline'=>today()->addDays(30)->toDateString()],'original_dates'=>['deadline'=>today()->addDay()->toDateString()],'reason'=>'Reviewed campus fundraiser extension','status'=>'approved','reviewed_by'=>$reviewer->id,'reviewed_at'=>now(),'review_note'=>'Dates checked.']);
+    $this->actingAs($this->mentor)->get(route('posts.archive',['type'=>'donation','status'=>'approved']))->assertOk()->assertSee($post->title)->assertSee('Extension Reviewer')->assertSee('At Application')->assertSee('Requested Date')->assertSee('Dates checked.');
+    $this->get(route('posts.archive',['type'=>'donation','status'=>'pending']))->assertOk()->assertDontSee('Reviewed campus fundraiser extension');
+    $this->actingAs($this->other)->get(route('posts.archive',['type'=>'donation','status'=>'approved']))->assertOk()->assertDontSee('Reviewed campus fundraiser extension');
+    $this->actingAs($reviewer)->get(route('posts.archive',['type'=>'donation','status'=>'approved']))->assertOk()->assertSee('Reviewed campus fundraiser extension');
+});
+
+test('administrators cannot review their own extension request', function (string $role) {
+    $owner = User::create(['name'=>'Admin Owner','email'=>$role.'-own-extension@example.com','role'=>$role,'is_active'=>true,'is_blocked'=>false]);
+    $post = permissionPost('donation',$owner);
+    $dates = ['deadline'=>today()->addDays(30)->toDateString()];
+    $this->actingAs($owner)->post(route('posts.extension.apply',['type'=>'donation','id'=>$post->id]),$dates+['reason'=>'Extend our university fundraising campaign.'])->assertSessionHasNoErrors();
+    $extension = \App\Models\PostExtensionRequest::where('post_id',$post->id)->firstOrFail();
+    expect($extension->original_dates)->toHaveKey('deadline');
+    foreach (['approved','rejected'] as $decision) $this->patch(route('posts.extension.review',$extension),['decision'=>$decision,'review_note'=>'Own review attempt'])->assertForbidden();
+    $this->get(route('posts.archive',['type'=>'donation']))->assertOk()->assertSee('Another administrator must review your own request.')->assertDontSee('Approve &amp; Publish',false);
+    expect($extension->fresh()->status)->toBe('pending');
+    $reviewer = User::create(['name'=>'Independent Admin','email'=>$role.'-independent@example.com','role'=>'super_admin','is_active'=>true,'is_blocked'=>false]);
+    $this->actingAs($reviewer)->patch(route('posts.extension.review',$extension),['decision'=>'approved'])->assertSessionHasNoErrors();
+    expect($extension->fresh()->status)->toBe('approved')->and($extension->fresh()->original_dates)->not->toBe($extension->fresh()->dates);
+})->with(['admin','super_admin']);

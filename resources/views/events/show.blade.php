@@ -12,7 +12,7 @@
 
 
 
-    <div class="min-h-screen">
+    <div class="uc-event-details min-h-screen">
 
         <style>
 
@@ -82,7 +82,7 @@
 
 
         <div
-            class="relative
+            class="uc-event-details-shell relative
                    overflow-hidden
                    rounded-[2rem]
                    bg-gradient-to-br
@@ -124,7 +124,7 @@
             {{-- HEADER --}}
 
             <div
-                class="relative
+                class="uc-compact-header relative
                        z-10
                        mb-7
                        flex
@@ -162,7 +162,7 @@
 
 
                     <h1
-                        class="mt-4
+                        class="uc-header-context mt-4
                                text-3xl
                                font-black
                                text-white
@@ -1048,4 +1048,5 @@
 
     </div>
 
+    @include('components.event-details-style')
 </x-app-layout>

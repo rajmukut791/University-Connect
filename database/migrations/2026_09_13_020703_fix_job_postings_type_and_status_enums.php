@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'mysql') { \Illuminate\Support\Facades\Schema::table('job_postings', function (\Illuminate\Database\Schema\Blueprint $table) { $table->string('type')->default('full_time')->change(); $table->string('status')->default('pending')->change(); }); return; }
+
         if (!Schema::hasTable('job_postings')) {
             return;
         }
@@ -121,6 +123,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') return;
+
         if (!Schema::hasTable('job_postings')) {
             return;
         }

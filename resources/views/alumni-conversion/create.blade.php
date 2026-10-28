@@ -245,6 +245,13 @@
         | Pending Request State
         ================================================================ --}}
 
+        @if(!$existingRequest && $latestApplication)
+            <section class="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+                <h3 class="font-bold text-white">Previous Application: {{ ucfirst($latestApplication->status) }}</h3>
+                @if($latestApplication->admin_notes)<p class="mt-2 whitespace-pre-line text-sm text-slate-300">{{ $latestApplication->admin_notes }}</p>@endif
+                @if($latestApplication->status === 'rejected')<p class="mt-2 text-xs text-amber-300">Review the feedback and submit a corrected application below.</p>@endif
+            </section>
+        @endif
         @if($existingRequest)
 
             <div

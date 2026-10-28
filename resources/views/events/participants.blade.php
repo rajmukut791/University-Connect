@@ -1,7 +1,7 @@
 <x-app-layout>
     <section class="mx-auto max-w-7xl space-y-5 p-6 text-white">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div><h1 class="text-2xl font-bold">Registered Participants</h1><p class="mt-2 text-slate-300">{{ $event->title }} · {{ $participants->total() }} registrations</p></div>
+        <div class="uc-compact-header flex flex-wrap items-center justify-between gap-4">
+            <div><h1 class="text-2xl font-bold">Registered Participants</h1><p class="uc-header-context mt-2 text-slate-300">{{ $event->title }} · {{ $participants->total() }} registrations</p></div>
             <a href="{{ route('events.show', $event) }}" class="rounded-xl bg-indigo-600 px-4 py-3 font-bold">Back to Event</a>
         </div>
         @if(session('success'))<p role="status" class="rounded-xl bg-green-500/10 p-4 text-green-300">{{ session('success') }}</p>@endif

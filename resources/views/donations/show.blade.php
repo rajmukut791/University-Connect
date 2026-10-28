@@ -33,12 +33,11 @@
         |--------------------------------------------------------------------------
         | IMPORTANT
         |--------------------------------------------------------------------------
-        | Replace these demo numbers with your authorized
-        | bKash / Nagad receiving numbers.
+        | Receiving numbers belong to this campaign and are supplied by its owner.
         */
 
-        $bkashNumber = '017XXXXXXXX';
-        $nagadNumber = '018XXXXXXXX';
+        $bkashNumber = $donation->bkash_number;
+        $nagadNumber = $donation->nagad_number;
     @endphp
     @if($isManagement || $isOwner)
         <div class="mx-auto my-5 max-w-7xl px-4"><a href="{{ route('donations.management', $donation) }}" class="inline-block rounded-xl bg-indigo-600 px-5 py-3 font-bold text-white">Donation Management / Transactions</a></div>
@@ -92,7 +91,7 @@
 
                         @if($status === 'approved')
 
-                            <span class="inline-flex items-center
+                            <span class="uc-header-context inline-flex items-center
                                          rounded-full
                                          bg-emerald-500/15
                                          border border-emerald-400/20
@@ -107,7 +106,7 @@
 
                         @elseif($status === 'pending')
 
-                            <span class="inline-flex items-center
+                            <span class="uc-header-context inline-flex items-center
                                          rounded-full
                                          bg-amber-500/15
                                          border border-amber-400/20
@@ -122,7 +121,7 @@
 
                         @elseif($status === 'rejected')
 
-                            <span class="inline-flex items-center
+                            <span class="uc-header-context inline-flex items-center
                                          rounded-full
                                          bg-red-500/15
                                          border border-red-400/20
@@ -140,7 +139,7 @@
                     </div>
 
 
-                    <h1 class="mt-4
+                    <h1 class="uc-header-context mt-4
                                text-3xl md:text-4xl
                                font-black text-white">
 
@@ -149,7 +148,7 @@
                     </h1>
 
 
-                    <p class="mt-2 text-slate-300">
+                    <p class="uc-header-context mt-2 text-slate-300">
 
                         {{ $category }}
 
@@ -371,7 +370,7 @@
 
                     @if($status === 'approved')
 
-                        <span class="rounded-full
+                        <span class="uc-header-context rounded-full
                                      bg-emerald-500/15
                                      px-3 py-1
                                      text-xs font-black
@@ -719,7 +718,7 @@
                         <button
                             type="button"
                             onclick="selectDonationMethod('bkash')"
-                            id="payment-btn-bkash"
+                            id="payment-btn-bkash" @disabled(!$bkashNumber) title="{{ $bkashNumber ? 'Pay using bKash' : 'bKash receiving number not provided by campaign owner' }}"
                             class="payment-method-btn
                                    rounded-2xl
                                    border-2
@@ -777,7 +776,7 @@
                         <button
                             type="button"
                             onclick="selectDonationMethod('nagad')"
-                            id="payment-btn-nagad"
+                            id="payment-btn-nagad" @disabled(!$nagadNumber) title="{{ $nagadNumber ? 'Pay using Nagad' : 'Nagad receiving number not provided by campaign owner' }}"
                             class="payment-method-btn
                                    rounded-2xl
                                    border-2
@@ -835,7 +834,7 @@
                         <button
                             type="button"
                             onclick="selectDonationMethod('visa')"
-                            id="payment-btn-visa"
+                            id="payment-btn-visa" @disabled(!config('services.stripe.secret') || !config('services.stripe.webhook_secret')) title="Card payments require verified payment-provider configuration"
                             class="payment-method-btn
                                    rounded-2xl
                                    border-2
@@ -970,7 +969,7 @@
                                               font-black
                                               text-pink-500">
 
-                                        {{ $bkashNumber }}
+                                        {{ $bkashNumber ?: 'Not configured by campaign owner' }}
 
                                     </p>
 
@@ -1324,7 +1323,7 @@
                                               font-black
                                               text-orange-500">
 
-                                        {{ $nagadNumber }}
+                                        {{ $nagadNumber ?: 'Not configured by campaign owner' }}
 
                                     </p>
 
@@ -2220,6 +2219,8 @@
             |--------------------------------------------------------------------------
             */
 
+            const selectedButton = document.getElementById('payment-btn-' + method);
+            if (selectedButton && selectedButton.disabled) return;
             const panel =
                 document.getElementById(
                     'payment-panel-' + method
@@ -2269,7 +2270,7 @@
                     );
 
 
-                if (bkashButton) {
+                if (bkashButton && !bkashButton.disabled) {
 
                     selectDonationMethod('bkash');
 

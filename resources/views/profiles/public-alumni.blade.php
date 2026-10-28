@@ -1,4 +1,5 @@
 <x-app-layout>
+    <div class="mx-auto max-w-7xl px-4"><x-mentorship-contact :user="$profileUser" /></div>
     <x-slot name="header">
         <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-purple-950 to-indigo-950 p-8 shadow-2xl border border-white/10">
             <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,.30),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,.25),transparent_35%)]"></div>

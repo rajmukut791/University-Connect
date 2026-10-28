@@ -80,9 +80,9 @@ class ProfileStrengthService
         $message = match (true) {
             $score >= 85 => 'Your profile is highly optimized for career and mentorship opportunities.',
             $score >= 70 => 'Your profile is strong, but a few details can make it more professional.',
-            $score >= 50 => 'Your profile is good. Add missing career details to improve AI matching.',
+            $score >= 50 => 'Your profile is good. Add missing career details to improve networking.',
             $score >= 30 => 'Your profile needs improvement. Complete important information.',
-            default => 'Your profile is incomplete. Add basic details to get real AI recommendations.',
+            default => 'Your profile is incomplete. Add basic details to get real profile completeness.',
         };
 
         return [

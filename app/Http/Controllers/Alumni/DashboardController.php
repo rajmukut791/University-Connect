@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Mentorship;
 use App\Models\Message;
 use App\Models\Notification;
-use App\Services\AISuggestionService;
 use App\Services\ProfileStrengthService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -178,13 +177,11 @@ class DashboardController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Dynamic AI Suggestions
+        | Dashboard information
         |--------------------------------------------------------------------------
         */
 
-        $aiSuggestions = app(
-            AISuggestionService::class
-        )->latestFor($user, 4);
+
 
 
         /*
@@ -201,8 +198,7 @@ class DashboardController extends Controller
                 'myJobs',
                 'mentorshipRequests',
                 'profileStrength',
-                'profileScore',
-                'aiSuggestions'
+                'profileScore'
             )
         );
     }

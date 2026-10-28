@@ -24,7 +24,7 @@
                         Profile Completion
                     </p>
 
-                    <p class="mt-1 text-4xl font-black text-emerald-300">
+                    <p class="uc-header-context mt-1 text-4xl font-black text-emerald-300">
                         {{ $profileScore ?? 0 }}%
                     </p>
 

@@ -12,10 +12,12 @@ class DashboardActivityService
 
     public static function connections(User $user, bool $pending = false)
     {
-        $student = $user->role === 'student';
-        $ids = Mentorship::where($student ? 'student_id' : 'mentor_id', $user->id)
-            ->whereIn('status', $pending ? ['pending'] : ['accepted', 'completed'])
-            ->select($student ? 'mentor_id' : 'student_id');
+        $statuses = $pending ? ['pending'] : ['accepted', 'completed'];
+        $ids = Mentorship::where('student_id', $user->id)->whereIn('status', $statuses)->pluck('mentor_id');
+        if ($user->role === 'alumni') {
+            $incoming = Mentorship::where('mentor_id', $user->id)->whereIn('status', $statuses)->pluck('student_id');
+            $ids = $pending ? $incoming : $ids->merge($incoming);
+        }
         return User::whereIn('id', $ids);
     }
 

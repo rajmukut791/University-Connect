@@ -10,7 +10,7 @@ class ArchiveExpiredPosts
 {
     public function handle(Request $request, Closure $next)
     {
-        PostLifecycleService::archiveExpired();
+        \App\Services\ExpiryMaintenanceService::run('posts', fn () => PostLifecycleService::archiveExpired());
         return $next($request);
     }
 }

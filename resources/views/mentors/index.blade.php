@@ -458,7 +458,7 @@
 
                                     <p class="mt-1.5 text-sm font-semibold text-slate-500 dark:text-slate-400">
 
-                                        {{ $mentor->current_designation ?: 'Verified Alumni Mentor' }}
+                                        {{ $mentor->current_designation ?: 'Alumni Mentor' }}
 
                                     </p>
 
@@ -474,12 +474,9 @@
                             </div>
 
 
-                            <span class="shrink-0 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[11px] font-black">
-
-                                <i class="fas fa-circle-check mr-1"></i>
-
-                                Verified
-
+                            <span class="shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-black {{ ($mentor->requires_message_request ?? true) ? 'bg-amber-400/10 border-amber-400/25 text-amber-300' : 'bg-emerald-400/10 border-emerald-400/25 text-emerald-300' }}">
+                                <i class="fas {{ ($mentor->requires_message_request ?? true) ? 'fa-lock' : 'fa-comment-dots' }} mr-1" aria-hidden="true"></i>
+                                {{ ($mentor->requires_message_request ?? true) ? 'Request Required' : 'No Request Needed' }}
                             </span>
 
                         </div>

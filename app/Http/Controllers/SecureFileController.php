@@ -6,7 +6,6 @@ use App\Models\Donation;
 use App\Models\DonationManualPayment;
 use App\Models\Event;
 use App\Models\Message;
-use App\Models\ResumeAnalysis;
 use App\Models\User;
 use App\Services\EncryptedFileService;
 use Illuminate\Http\Response;
@@ -194,59 +193,7 @@ class SecureFileController extends Controller
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Resume
-    |--------------------------------------------------------------------------
-    */
-
-    public function resume(
-        ResumeAnalysis $resumeAnalysis
-    ): Response {
-        $user = auth()->user();
-
-        abort_unless(
-            $user &&
-            (int) $resumeAnalysis->user_id ===
-                (int) $user->id,
-            403
-        );
-
-        abort_if(
-            empty($resumeAnalysis->file_path),
-            404
-        );
-
-        $extension = strtolower(
-            $resumeAnalysis->file_type ?? ''
-        );
-
-        $mime = match ($extension) {
-            'pdf' =>
-                'application/pdf',
-
-            'doc' =>
-                'application/msword',
-
-            'docx' =>
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-
-            'txt' =>
-                'text/plain',
-
-            default =>
-                'application/octet-stream',
-        };
-
-        return $this->serve(
-            $resumeAnalysis->file_path,
-            $mime,
-            $resumeAnalysis->original_file_name
-                ?: 'resume'
-        );
-    }
-
-    /*
+/*
     |--------------------------------------------------------------------------
     | Serve / Decrypt
     |--------------------------------------------------------------------------

@@ -11,7 +11,7 @@ class UnblockExpiredAccounts
 {
     public function handle(Request $request, Closure $next): Response
     {
-        User::unblockExpiredAccounts();
+        \App\Services\ExpiryMaintenanceService::run('accounts', fn () => User::unblockExpiredAccounts());
 
         return $next($request);
     }

@@ -7,7 +7,6 @@ use App\Models\Event;
 use App\Models\JobPosting;
 use App\Models\Mentorship;
 use App\Models\Message;
-use App\Services\AISuggestionService;
 use App\Services\ProfileStrengthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -62,12 +61,11 @@ class DashboardController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | AI Suggestions
+        | Dashboard information
         |--------------------------------------------------------------------------
         */
 
-        $aiSuggestions = app(AISuggestionService::class)
-            ->latestFor($user, 3);
+
 
         return view('student.dashboard', compact(
             'user',
@@ -75,33 +73,15 @@ class DashboardController extends Controller
             'recommendedJobs',
             'recommendedEvents',
             'profileStrength',
-            'profileScore',
-            'aiSuggestions'
+            'profileScore'
         ));
     }
 
 
     /**
-     * Simple Student AI Assistant
+     * Student information
      */
-    public function aiStudyAssistant(Request $request)
-    {
-        $validated = $request->validate([
-            'question' => [
-                'required',
-                'string',
-                'min:3',
-                'max:500',
-            ],
-        ]);
 
-        return back()->with([
-            'ai_question' => $validated['question'],
-            'ai_answer' => $this->generateStudyAnswer(
-                strtolower($validated['question'])
-            ),
-        ]);
-    }
 
 
     /*
@@ -116,7 +96,7 @@ class DashboardController extends Controller
             return 0;
         }
 
-        $query = JobPosting::query();
+        $query = JobPosting::whereNull('archived_at');
 
         if (Schema::hasColumn('job_postings', 'status')) {
             $query->where('status', 'approved');
@@ -132,7 +112,7 @@ class DashboardController extends Controller
             return collect();
         }
 
-        $query = JobPosting::query();
+        $query = JobPosting::whereNull('archived_at');
 
         if (Schema::hasColumn('job_postings', 'status')) {
             $query->where('status', 'approved');
@@ -176,7 +156,7 @@ class DashboardController extends Controller
             return collect();
         }
 
-        $query = Event::query();
+        $query = Event::whereNull('archived_at');
 
         if (Schema::hasColumn('events', 'status')) {
             $query->whereIn(
@@ -243,58 +223,9 @@ class DashboardController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Simple AI Assistant Response
+    | Dashboard helpers
     |--------------------------------------------------------------------------
     */
 
-    private function generateStudyAnswer(string $question): string
-    {
-        if (
-            str_contains($question, 'career') ||
-            str_contains($question, 'job')
-        ) {
-            return 'Focus on building a strong portfolio, improving communication skills, developing practical skills, maintaining your GitHub and LinkedIn profiles, and regularly exploring suitable job and internship opportunities.';
-        }
 
-        if (
-            str_contains($question, 'cv') ||
-            str_contains($question, 'resume')
-        ) {
-            return 'Your CV should clearly present your education, technical skills, projects, achievements, experience, and contact information. Keep the layout clean, concise, and relevant to the opportunity you are applying for.';
-        }
-
-        if (
-            str_contains($question, 'programming') ||
-            str_contains($question, 'coding')
-        ) {
-            return 'Practice programming consistently. Strengthen problem-solving fundamentals and then build practical projects using technologies related to your career goals.';
-        }
-
-        if (
-            str_contains($question, 'exam') ||
-            str_contains($question, 'study')
-        ) {
-            return 'Create a realistic study routine, divide large topics into smaller tasks, revise your notes regularly, practice previous questions, and take short breaks to maintain concentration.';
-        }
-
-        if (str_contains($question, 'internship')) {
-            return 'Prepare a focused CV, complete your professional profile, maintain your GitHub or portfolio, practice interview questions, and regularly check suitable internship opportunities.';
-        }
-
-        if (
-            str_contains($question, 'mentor') ||
-            str_contains($question, 'mentorship')
-        ) {
-            return 'Choose a mentor whose professional background matches your career interests. Before sending a mentorship request, clearly identify what guidance you need and keep your profile information updated.';
-        }
-
-        if (
-            str_contains($question, 'skill') ||
-            str_contains($question, 'skills')
-        ) {
-            return 'Focus on a combination of technical skills, communication, problem solving, teamwork, and practical project experience. Prioritize skills that match the career path you want to pursue.';
-        }
-
-        return 'Focus on completing your profile, developing practical skills, exploring approved opportunities, joining useful events, and connecting with suitable alumni mentors for career guidance.';
-    }
 }

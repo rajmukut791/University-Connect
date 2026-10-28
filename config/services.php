@@ -31,14 +31,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Gemini API
+    | Calling and Payments
     |--------------------------------------------------------------------------
     */
 
-    'gemini' => [
-        'api_key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
-        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
+    'calls' => [
+        'ice_servers' => array_values(array_filter([
+            ['urls'=>'stun:stun.l.google.com:19302'], ['urls'=>'stun:stun1.l.google.com:19302'],
+            env('TURN_URL') ? ['urls'=>env('TURN_URL'), 'username'=>env('TURN_USERNAME'), 'credential'=>env('TURN_PASSWORD')] : null,
+        ])),
     ],
    'stripe' => [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),

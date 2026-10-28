@@ -8,7 +8,7 @@
 
         <div class="relative overflow-hidden rounded-3xl
                     bg-gradient-to-r from-slate-950 via-indigo-950 to-purple-950
-                    p-8 shadow-2xl border border-white/10">
+                    p-5 shadow-2xl border border-white/10">
 
             <div class="absolute inset-0
                         bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,.45),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(236,72,153,.35),transparent_35%)]">
@@ -39,7 +39,7 @@
                     </p>
 
 
-                    <h2 class="mt-3 text-4xl lg:text-5xl
+                    <h2 class="mt-3 text-2xl lg:text-2xl
                                font-black text-white">
 
                         {{ auth()->user()->role === 'super_admin'
@@ -60,41 +60,6 @@
                 </div>
 
 
-                <div class="flex items-center gap-4">
-
-                    <div class="rounded-2xl border border-white/10
-                                bg-white/10 backdrop-blur-xl
-                                px-5 py-4">
-
-                        <p class="text-xs text-slate-300">
-                            Logged in as
-                        </p>
-
-                        <p class="font-bold text-white">
-                            {{ Auth::user()->name }}
-                        </p>
-
-                    </div>
-
-
-                    <div class="h-16 w-16 rounded-2xl
-                                bg-gradient-to-br from-cyan-400 to-fuchsia-500
-                                flex items-center justify-center
-                                shadow-2xl shadow-fuchsia-500/30">
-
-                        @if(auth()->user()->role === 'super_admin')
-
-                            <i class="fas fa-crown text-2xl text-white"></i>
-
-                        @else
-
-                            <i class="fas fa-user-shield text-2xl text-white"></i>
-
-                        @endif
-
-                    </div>
-
-                </div>
 
             </div>
 
@@ -203,6 +168,46 @@
 
         }
 
+
+        /* Dashboard-only compact composition; all tool links remain available. */
+        /* Include the sticky navbar's 12px offset, leaving a visible 12px card gap. */
+        .uc-main-area:has(.uc-management-dashboard) { padding-top: 24px; padding-bottom: 20px; min-height: auto; }
+        .uc-main-area:has(.uc-management-dashboard) .uc-page-hero { margin-bottom: 12px !important; }
+        .uc-main-area:has(.uc-management-dashboard) .uc-page-hero > div { min-height: 56px; padding-block: 12px !important; }
+        .uc-management-dashboard { display: grid; gap: 12px; }
+        .uc-management-dashboard.space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
+        .uc-management-dashboard > * { margin-top: 0 !important; }
+        .uc-management-dashboard .uc-management-stats { gap: 12px !important; }
+        .uc-management-dashboard .uc-management-stats .uc-card { padding: 12px 14px !important; }
+        .uc-management-stats h3 { margin-top: 5px !important; font-size: 24px !important; line-height: 1.1; }
+        .uc-management-stats p { font-size: 12px; }
+        .uc-management-stats .h-14 { width: 34px !important; height: 34px !important; animation: none; border-radius: 11px; }
+        .uc-management-stats .h-14 i { font-size: 15px; }
+        .uc-management-stats .h-1\.5 { height: 3px; margin-top: 10px !important; }
+        .uc-management-dashboard .uc-management-tools { padding: 16px !important; }
+        .uc-management-tools > div > .flex { flex-direction: row; align-items: center; margin-bottom: 12px !important; }
+        .uc-management-tools > div > .flex h3 { font-size: 18px !important; line-height: 1.3; margin-top: 3px; }
+        .uc-management-tools > div > .flex p { font-size: 11px; margin-top: 3px; }
+        .uc-management-tools > div > .flex .h-14 { display: none; }
+        .uc-management-tools > div > .grid { gap: 12px !important; }
+        .uc-management-dashboard .uc-action {
+            display: grid; grid-template-columns: 34px minmax(0,1fr); column-gap: 12px;
+            align-content: center; min-height: 94px; padding: 14px !important;
+            border-radius: 14px; box-shadow: inset 0 1px 0 #ffffff08;
+        }
+        .uc-management-dashboard .uc-action > .flex { grid-row: 1 / 3; align-self: center; }
+        .uc-management-dashboard .uc-action > .flex > .fa-arrow-right { display: none; }
+        .uc-management-dashboard .uc-action .h-12 { width: 34px !important; height: 34px !important; border-radius: 11px; }
+        .uc-management-dashboard .uc-action .h-12 i { font-size: 15px; }
+        .uc-management-dashboard .uc-action h4 { margin: 0 !important; font-size: 14px; line-height: 1.4; }
+        .uc-management-dashboard .uc-action p { margin-top: 4px !important; font-size: 11px; line-height: 1.5; }
+        @media (min-width: 1000px) {
+            .uc-management-dashboard .uc-management-stats { grid-template-columns: repeat(6,minmax(0,1fr)); }
+            .uc-management-tools > div > .grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+        }
+        @media (max-width: 639px) {
+            .uc-management-dashboard .uc-management-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        }
     </style>
 
 
@@ -288,14 +293,14 @@
 
 
 
-    <div class="space-y-8">
+    <div class="uc-management-dashboard space-y-8">
 
 
         {{-- ========================================================= --}}
         {{-- STATISTIC CARDS --}}
         {{-- ========================================================= --}}
 
-        <div class="grid grid-cols-1
+        <div class="uc-management-stats grid grid-cols-1
                     sm:grid-cols-2
                     lg:grid-cols-3
                     xl:grid-cols-6
@@ -383,7 +388,7 @@
         {{-- QUICK ACTIONS --}}
         {{-- ========================================================= --}}
 
-        <div class="uc-card p-7 lg:p-8">
+        <div class="uc-management-tools uc-card p-7 lg:p-8">
 
 
             <div class="relative z-10">
@@ -812,510 +817,13 @@
 
 
 
-        {{-- ========================================================= --}}
-        {{-- MAIN DASHBOARD CONTENT --}}
-        {{-- ========================================================= --}}
-
-        <div class="grid grid-cols-1
-                    xl:grid-cols-2
-                    gap-8">
-
-
-            {{-- ===================================================== --}}
-            {{-- RECENT USERS --}}
-            {{-- ===================================================== --}}
-
-            <div class="uc-card p-7">
-
-
-                <div class="relative z-10">
-
-
-                    <div class="flex flex-col
-                                sm:flex-row
-                                sm:items-center
-                                sm:justify-between
-                                gap-4
-                                mb-6">
-
-
-                        <div>
-
-                            <p class="text-sm uppercase
-                                      tracking-[0.25em]
-                                      text-purple-500
-                                      font-black">
-
-                                User Control
-
-                            </p>
-
-
-                            <h3 class="mt-1 text-2xl
-                                       font-black
-                                       text-slate-900
-                                       dark:text-white">
-
-                                Recent Platform Members
-
-                            </h3>
-
-                        </div>
-
-
-                        <a
-                            href="{{ $usersRoute }}"
-                            class="px-4 py-2 rounded-xl
-                                   bg-purple-500/15
-                                   text-purple-600
-                                   dark:text-purple-300
-                                   font-bold
-                                   hover:bg-purple-500/25
-                                   transition"
-                        >
-
-                            Manage Users
-
-                        </a>
-
-                    </div>
-
-
-
-                    <div class="overflow-x-auto">
-
-
-                        <table class="w-full">
-
-
-                            <thead>
-
-                                <tr class="text-left
-                                           text-xs uppercase
-                                           tracking-widest
-                                           text-slate-500
-                                           border-b
-                                           border-white/10">
-
-                                    <th class="py-4 pr-4">
-                                        User
-                                    </th>
-
-                                    <th class="py-4 pr-4">
-                                        Role
-                                    </th>
-
-                                    <th class="py-4">
-                                        Status
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-
-                            <tbody class="divide-y divide-white/10">
-
-
-                                @forelse($recentUsers as $user)
-
-                                    <tr class="hover:bg-white/5 transition">
-
-
-                                        <td class="py-5 pr-4">
-
-
-                                            <div class="flex items-center gap-3">
-
-
-                                                <div class="h-11 w-11
-                                                            shrink-0
-                                                            rounded-2xl
-                                                            bg-gradient-to-br
-                                                            from-indigo-500
-                                                            to-fuchsia-500
-                                                            flex items-center
-                                                            justify-center
-                                                            text-white
-                                                            font-black">
-
-                                                    {{ strtoupper(substr($user->name, 0, 1)) }}
-
-                                                </div>
-
-
-                                                <div class="min-w-0">
-
-                                                    <p class="font-black
-                                                              text-slate-900
-                                                              dark:text-white
-                                                              truncate">
-
-                                                        {{ $user->name }}
-
-                                                    </p>
-
-
-                                                    <p class="text-sm
-                                                              text-slate-500
-                                                              truncate">
-
-                                                        {{ $user->email }}
-
-                                                    </p>
-
-                                                </div>
-
-
-                                            </div>
-
-
-                                        </td>
-
-
-
-                                        <td class="py-5 pr-4">
-
-                                            <span class="px-3 py-1
-                                                         rounded-full
-                                                         text-xs font-black
-
-                                                @if($user->role === 'student')
-                                                    bg-cyan-500/15 text-cyan-600 dark:text-cyan-300
-
-                                                @elseif($user->role === 'alumni')
-                                                    bg-amber-500/15 text-amber-600 dark:text-amber-300
-
-                                                @elseif($user->role === 'super_admin')
-                                                    bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-300
-
-                                                @else
-                                                    bg-purple-500/15 text-purple-600 dark:text-purple-300
-                                                @endif
-                                            ">
-
-                                                {{ ucwords(str_replace('_', ' ', $user->role)) }}
-
-                                            </span>
-
-                                        </td>
-
-
-
-                                        <td class="py-5">
-
-                                            @if($user->is_blocked)
-
-                                                <span class="px-3 py-1
-                                                             rounded-full
-                                                             bg-red-500/15
-                                                             text-red-600
-                                                             dark:text-red-300
-                                                             text-xs
-                                                             font-black">
-
-                                                    Blocked
-
-                                                </span>
-
-
-                                            @elseif($user->is_active)
-
-                                                <span class="px-3 py-1
-                                                             rounded-full
-                                                             bg-emerald-500/15
-                                                             text-emerald-600
-                                                             dark:text-emerald-300
-                                                             text-xs
-                                                             font-black">
-
-                                                    Active
-
-                                                </span>
-
-
-                                            @else
-
-                                                <span class="px-3 py-1
-                                                             rounded-full
-                                                             bg-amber-500/15
-                                                             text-amber-600
-                                                             dark:text-amber-300
-                                                             text-xs
-                                                             font-black">
-
-                                                    Inactive
-
-                                                </span>
-
-                                            @endif
-
-                                        </td>
-
-
-                                    </tr>
-
-                                @empty
-
-
-                                    <tr>
-
-                                        <td
-                                            colspan="3"
-                                            class="py-10
-                                                   text-center
-                                                   text-slate-500
-                                                   font-bold"
-                                        >
-
-                                            No users found.
-
-                                        </td>
-
-                                    </tr>
-
-
-                                @endforelse
-
-
-                            </tbody>
-
-
-                        </table>
-
-
-                    </div>
-
-
-                </div>
-
-            </div>
-
-
-
-            {{-- ===================================================== --}}
-            {{-- RECENT JOBS --}}
-            {{-- ===================================================== --}}
-
-            <div class="uc-card p-7">
-
-
-                <div class="relative z-10">
-
-
-                    <div class="flex flex-col
-                                sm:flex-row
-                                sm:items-center
-                                sm:justify-between
-                                gap-4
-                                mb-6">
-
-
-                        <div>
-
-                            <p class="text-sm uppercase
-                                      tracking-[0.25em]
-                                      text-pink-500
-                                      font-black">
-
-                                Career Flow
-
-                            </p>
-
-
-                            <h3 class="mt-1 text-2xl
-                                       font-black
-                                       text-slate-900
-                                       dark:text-white">
-
-                                Recent Job Posts
-
-                            </h3>
-
-                        </div>
-
-
-                        <a
-                            href="{{ route('jobs.index') }}"
-                            class="px-4 py-2
-                                   rounded-xl
-                                   bg-pink-500/15
-                                   text-pink-600
-                                   dark:text-pink-300
-                                   font-bold
-                                   hover:bg-pink-500/25
-                                   transition"
-                        >
-
-                            View Jobs
-
-                        </a>
-
-                    </div>
-
-
-
-                    <div class="space-y-4">
-
-
-                        @forelse($recentJobs as $job)
-
-
-                            <div class="rounded-3xl
-                                        border border-white/10
-                                        bg-white/5
-                                        p-5
-                                        flex flex-col
-                                        md:flex-row
-                                        md:items-center
-                                        md:justify-between
-                                        gap-4">
-
-
-                                <div class="min-w-0">
-
-
-                                    <h4 class="font-black
-                                               text-slate-900
-                                               dark:text-white">
-
-                                        {{ $job->title ?? 'Untitled Job' }}
-
-                                    </h4>
-
-
-                                    <p class="text-sm
-                                              text-slate-500
-                                              mt-1">
-
-                                        {{ $job->company_name
-                                            ?? $job->company
-                                            ?? 'Unknown Company'
-                                        }}
-
-
-                                        @if(!empty($job->location))
-
-                                            <span class="mx-1">
-                                                •
-                                            </span>
-
-                                            {{ $job->location }}
-
-                                        @endif
-
-                                    </p>
-
-
-                                    @if(isset($job->created_at))
-
-                                        <p class="mt-2
-                                                  text-xs
-                                                  text-slate-400
-                                                  font-bold">
-
-                                            {{ \Carbon\Carbon::parse($job->created_at)->diffForHumans() }}
-
-                                        </p>
-
-                                    @endif
-
-
-                                </div>
-
-
-
-                                <div class="shrink-0">
-
-
-                                    <span class="px-3 py-1.5
-                                                 rounded-full
-                                                 text-xs
-                                                 font-black
-
-                                        @if(($job->status ?? '') === 'approved')
-                                            bg-emerald-500/15
-                                            text-emerald-600
-                                            dark:text-emerald-300
-
-                                        @elseif(($job->status ?? '') === 'pending')
-                                            bg-amber-500/15
-                                            text-amber-600
-                                            dark:text-amber-300
-
-                                        @elseif(($job->status ?? '') === 'rejected')
-                                            bg-red-500/15
-                                            text-red-600
-                                            dark:text-red-300
-
-                                        @else
-                                            bg-slate-500/15
-                                            text-slate-600
-                                            dark:text-slate-300
-                                        @endif
-                                    ">
-
-                                        {{ strtoupper($job->status ?? 'UNKNOWN') }}
-
-                                    </span>
-
-
-                                </div>
-
-
-                            </div>
-
-
-                        @empty
-
-
-                            <div class="rounded-3xl
-                                        border border-white/10
-                                        bg-white/5
-                                        p-10
-                                        text-center">
-
-
-                                <div class="mx-auto
-                                            h-14 w-14
-                                            rounded-2xl
-                                            bg-pink-500/15
-                                            text-pink-500
-                                            flex items-center
-                                            justify-center">
-
-                                    <i class="fas fa-briefcase text-xl"></i>
-
-                                </div>
-
-
-                                <p class="mt-4
-                                          text-slate-500
-                                          font-bold">
-
-                                    No job posts found.
-
-                                </p>
-
-
-                            </div>
-
-
-                        @endforelse
-
-
-                    </div>
-
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-
     </div>
-
-
+    <section class="mt-3 rounded-2xl border border-white/10 bg-slate-900/60 p-3">
+        <h2 class="text-sm font-bold text-white">Pending Reviews</h2>
+        <div class="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-6">
+            @foreach($pendingOverview as $review)
+                <a href="{{ $review['url'] }}" class="flex items-center justify-between gap-2 rounded-xl border border-indigo-400/20 bg-indigo-500/5 px-3 py-2 text-[11px] text-slate-300"><span>{{ $review['label'] }}</span><strong class="text-sm text-indigo-300">{{ $review['count'] }}</strong></a>
+            @endforeach
+        </div>
+    </section>
 </x-app-layout>

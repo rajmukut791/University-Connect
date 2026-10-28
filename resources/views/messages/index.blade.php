@@ -392,6 +392,7 @@
 
         mx-auto
 
+        uc-messages-view uc-inbox-view
         max-w-6xl
 
     ">
@@ -407,6 +408,7 @@
             gap-5
 
             lg:grid-cols-12
+            {{ $conversations->isEmpty() ? 'uc-inbox-single' : '' }}
 
         ">
 
@@ -422,6 +424,7 @@
 
 
 
+            @if($conversations->isNotEmpty())
             <section class="
 
                 message-panel
@@ -564,7 +567,7 @@
 
 
 
-                   @forelse($conversations as $conversationUser)
+                   @foreach($conversations as $conversationUser)
 
 
 
@@ -622,19 +625,7 @@
 
 
 
-                        <a
-
-                            href="{{
-
-                                route(
-
-                                    'messages.show',
-
-                                    $conversationUser
-
-                                )
-
-                            }}"
+                        <div
 
                             class="
 
@@ -692,11 +683,7 @@
 
                                         }}"
 
-                                        alt="{{
-
-                                            $conversationUser->name
-
-                                        }}"
+                                        alt="{{ $conversationUser->name }}"
 
                                         class="
 
@@ -822,11 +809,7 @@
 
 
 
-                                            {{
-
-                                                $conversationUser->name
-
-                                            }}
+                                            <a href="{{ route($conversationUser->role === 'alumni' ? 'profiles.alumni.show' : 'profiles.student.show', $conversationUser) }}" class="hover:underline">{{ $conversationUser->name }}</a>
 
 
 
@@ -1124,119 +1107,13 @@
 
 
 
-                        </a>
+                        <a href="{{ route('messages.show', $conversationUser) }}" class="mt-2 inline-block rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold text-white">Open Chat</a></div>
 
 
 
 
 
-                    @empty
-
-
-
-
-
-                        <div class="
-
-                            flex
-
-                            min-h-[300px]
-
-                            flex-col
-
-                            items-center
-
-                            justify-center
-
-                            px-6
-
-                            py-10
-
-                            text-center
-
-                        ">
-
-
-
-                            <div class="
-
-                                flex
-
-                                h-16
-
-                                w-16
-
-                                items-center
-
-                                justify-center
-
-                                rounded-2xl
-
-                                bg-cyan-500/10
-
-                                text-cyan-500
-
-                            ">
-
-
-
-                                <i class="
-
-                                    fas
-
-                                    fa-comment-dots
-
-                                    text-2xl
-
-                                "></i>
-
-
-
-                            </div>
-
-
-
-                            <h4 class="
-
-                                mt-4
-
-                                font-black
-
-                                text-slate-900
-
-                                dark:text-white
-
-                            ">
-
-                                No conversations yet
-
-                            </h4>
-
-
-
-                            <p class="
-
-                                mt-1
-
-                                text-sm
-
-                                text-slate-500
-
-                            ">
-
-                                Choose someone and send your first message.
-
-                            </p>
-
-
-
-                        </div>
-
-
-
-
-
-                    @endforelse
+                    @endforeach
 
 
 
@@ -1245,6 +1122,7 @@
 
 
             </section>
+            @endif
 
 
 
@@ -1690,19 +1568,7 @@
 
 
 
-                        <a
-
-                            href="{{
-
-                                route(
-
-                                    'messages.show',
-
-                                    $chatUser
-
-                                )
-
-                            }}"
+                        <div
 
 
 
@@ -1786,7 +1652,7 @@
 
 
 
-                                {{-- Avatar --}}
+                                {{-- Avatar --}}<a class="shrink-0" aria-label="View profile" href="{{ route($chatUser->role === 'alumni' ? 'profiles.alumni.show' : 'profiles.student.show', $chatUser) }}">
 
 
 
@@ -1900,7 +1766,7 @@
 
 
 
-                                {{-- Information --}}
+                                </a>{{-- Information --}}
 
 
 
@@ -1930,7 +1796,7 @@
 
 
 
-                                        {{ $chatUser->name }}
+                                        <a href="{{ route($chatUser->role === 'alumni' ? 'profiles.alumni.show' : 'profiles.student.show', $chatUser) }}" class="hover:underline" @click.stop>{{ $chatUser->name }}</a>
 
 
 
@@ -2052,7 +1918,7 @@
 
 
 
-                        </a>
+                        <a href="{{ route('messages.show', $chatUser) }}" class="mt-2 inline-block rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold text-white">Open Chat</a></div>
 
 
 
@@ -3460,4 +3326,5 @@
 
 
 
+    @include('components.messaging-layout')
 </x-app-layout>

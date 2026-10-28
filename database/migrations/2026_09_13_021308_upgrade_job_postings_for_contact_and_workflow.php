@@ -50,7 +50,7 @@ return new class extends Migration
         |
         */
 
-        DB::statement("
+        if (DB::getDriverName() === 'mysql') DB::statement("
             ALTER TABLE job_postings
             MODIFY type ENUM(
                 'full-time',
@@ -77,7 +77,7 @@ return new class extends Migration
                 'type' => 'part_time',
             ]);
 
-        DB::statement("
+        if (DB::getDriverName() === 'mysql') DB::statement("
             ALTER TABLE job_postings
             MODIFY type ENUM(
                 'full_time',
@@ -97,7 +97,7 @@ return new class extends Migration
         |--------------------------------------------------------------------------
         */
 
-        DB::statement("
+        if (DB::getDriverName() === 'mysql') DB::statement("
             ALTER TABLE job_postings
             MODIFY status ENUM(
                 'open',
@@ -115,7 +115,7 @@ return new class extends Migration
                 'status' => 'approved',
             ]);
 
-        DB::statement("
+        if (DB::getDriverName() === 'mysql') DB::statement("
             ALTER TABLE job_postings
             MODIFY status ENUM(
                 'pending',

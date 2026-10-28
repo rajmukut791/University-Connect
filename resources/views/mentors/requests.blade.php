@@ -20,11 +20,11 @@
                     </p>
 
                     <h2 class="mt-2 text-3xl font-black text-white lg:text-4xl">
-                        Student Requests
+                        Mentorship Requests
                     </h2>
 
                     <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                        Review student mentorship requests and manage your active mentorships.
+                        Review student and alumni mentorship requests and manage your active mentorships.
                     </p>
                 </div>
 
@@ -554,13 +554,13 @@
 
                                     @if($requestItem->student)
                                         <a
-                                            href="{{ route('profiles.student.show', $requestItem->student) }}"
+                                            href="{{ route($requestItem->student->role === 'alumni' ? 'profiles.alumni.show' : 'profiles.student.show', $requestItem->student) }}"
                                             class="mt-3 inline-flex items-center gap-2
                                                    text-xs font-black text-cyan-500
                                                    transition hover:text-cyan-400"
                                         >
                                             <i class="fas fa-user-graduate"></i>
-                                            View Student Profile
+                                            View Profile
                                             <i class="fas fa-arrow-right text-[10px]"></i>
                                         </a>
                                     @endif

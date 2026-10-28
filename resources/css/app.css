@@ -2,77 +2,135 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light-theme adjustments are scoped to the app and never match dark mode. */
-html:not(.dark) .uc-app-shell {
-    background: linear-gradient(135deg, #f5f7ff, #f8fafc 55%, #fdf4ff) !important;
-    color: #172033;
+/* Compact page toolbars, scoped away from navigation, feed cards and forms. */
+.uc-page-hero { margin-bottom: 20px !important; }
+.uc-page-hero > div, .uc-compact-header {
+    position: relative; min-height: 68px; padding: 16px 20px !important;
+    border: 1px solid rgba(148,163,184,.16) !important; border-radius: 18px !important;
+    background: linear-gradient(110deg,rgba(15,23,42,.94),rgba(30,27,75,.68) 65%,rgba(49,26,65,.5)) !important;
+    box-shadow: inset 0 1px 0 #ffffff0e, 0 8px 24px #0206171f !important;
+    overflow: visible !important;
 }
-html:not(.dark) .uc-orb { opacity: .12; }
-html:not(.dark) :is(.uc-topbar, .uc-dropdown, .uc-more-dropdown, .uc-profile-pill, .premium-glass) {
-    background: #ffffff !important;
-    border-color: #dbe3f0 !important;
-    box-shadow: 0 12px 35px rgb(30 41 59 / .09) !important;
-    color: #172033 !important;
+.uc-compact-header { margin-bottom: 20px !important; }
+.uc-page-hero > div > .absolute { display: none; }
+:is(.uc-page-hero,.uc-compact-header) :is(h1,h2) {
+    margin: 0 !important; font-size: clamp(1.15rem,1.7vw,1.55rem) !important;
+    line-height: 1.3 !important; letter-spacing: -.025em; font-weight: 800 !important; overflow-wrap: anywhere;
 }
-html:not(.dark) :is(.uc-brand-title, .uc-nav, .uc-dropdown-link, .uc-more-link, .uc-icon-btn) {
-    color: #334155;
+:is(.uc-page-hero,.uc-compact-header) p[class*="tracking-"],
+.uc-compact-header div[class*="tracking-"],
+:is(.uc-page-hero,.uc-compact-header) p[class*="max-w-"] { display: none; }
+:is(.uc-page-hero,.uc-compact-header) p { margin-top: 4px !important; font-size: 12px !important; line-height: 1.5 !important; }
+.uc-page-hero > div > div.flex, .uc-compact-header {
+    display: flex; flex-direction: row !important; align-items: center !important;
+    justify-content: space-between; flex-wrap: wrap; gap: 12px !important;
 }
-html:not(.dark) .uc-brand-subtitle { color: #64748b; }
-html:not(.dark) :is(.uc-nav, .uc-icon-btn) { background: #f1f5f9; border-color: #dbe3f0; }
-html:not(.dark) :is(.uc-nav, .uc-more-link, .uc-dropdown-link, .uc-icon-btn):hover {
-    background: #eef2ff; color: #4338ca;
+:is(.uc-page-hero,.uc-compact-header) .flex { flex-wrap: wrap; gap: 10px !important; }
+:is(.uc-page-hero,.uc-compact-header) div:has(> h1,> h2) { min-width: 0; flex: 1 1 240px; }
+:is(.uc-page-hero,.uc-compact-header) div:has(> a)[class*="mt-"] { margin-top: 10px !important; }
+:is(.uc-page-hero,.uc-compact-header) :is(a,button) {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    min-height: 40px; max-width: 100%; padding: 9px 14px !important; border-radius: 11px !important;
+    font-size: 12px !important; line-height: 1.4 !important; font-weight: 750;
+    box-shadow: inset 0 1px 0 #ffffff14 !important; text-align: center;
+    transition: background-color .2s,border-color .2s,box-shadow .2s;
 }
-html:not(.dark) :is(.uc-active, .uc-more-link-active) {
-    background: linear-gradient(110deg, #6d28d9, #4338ca) !important;
-    border-color: #6d28d9 !important;
-    color: #fff !important;
+:is(.uc-page-hero,.uc-compact-header) :is(a,button):hover { transform: none !important; filter: brightness(1.12); }
+:is(.uc-page-hero,.uc-compact-header) :is(a,button):focus-visible { outline: 2px solid #67e8f9; outline-offset: 3px; }
+.uc-page-hero div[class*="backdrop-blur"] { padding: 8px 12px !important; border-radius: 12px !important; }
+@media(max-width:640px) {
+    .uc-page-hero > div,.uc-compact-header { padding: 14px !important; border-radius: 15px !important; }
+    .uc-page-hero { margin-bottom: 16px !important; }
+    :is(.uc-page-hero,.uc-compact-header) :is(a,button) { min-height: 42px; }
 }
-html:not(.dark) .uc-role-badge { background: #e0f2fe; border-color: #bae6fd; color: #075985; }
-html:not(.dark) :is(.uc-topbar, .uc-dropdown, .uc-more-dropdown, .uc-profile-pill, aside.premium-glass) :is(.text-white, .text-slate-200, .text-slate-300):not(.uc-profile-avatar):not(.uc-logo-box):not(.uc-active):not(.uc-profile-avatar *):not(.uc-logo-box *):not(.uc-active *) {
-    color: #1e293b !important;
+
+/* Shared card density; role-specific wrapper classes keep the feed excluded. */
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card,.event-card,.donate-card) {
+    padding: 16px !important;
+    border-radius: 18px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.045),0 6px 20px rgba(2,6,23,.12) !important;
 }
-html:not(.dark) :is(.uc-profile-avatar, .uc-logo-box, .uc-active) { color: #fff !important; }
-html:not(.dark) :is(.uc-profile-avatar, .uc-logo-box, .uc-active) * { color: inherit !important; }
-html:not(.dark) :is(.uc-card, .uc-action, .uc-post, .uc-comment-box) {
-    background: #fff !important;
-    border-color: #dbe3f0 !important;
-    box-shadow: 0 8px 28px rgb(30 41 59 / .07) !important;
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card):hover { transform: translateY(-2px) !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.space-y-8,.space-y-6) > :not([hidden]) ~ :not([hidden]) { margin-top: 18px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.grid,.flex)[class*="gap-6"],
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.grid,.flex)[class*="gap-8"] { gap: 16px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) .grid[class*="gap-5"] { gap: 16px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) :is(.mt-8,.mt-6) { margin-top: 14px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) .mt-5 { margin-top: 12px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) .mt-4 { margin-top: 10px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) :is(.mb-6,.mb-8) { margin-bottom: 16px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) .text-4xl { font-size: 1.75rem !important; line-height: 1.2 !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) h3.text-2xl { font-size: 1.125rem !important; line-height: 1.45 !important; }
+/* Decorative icon tiles shrink; uploaded photos retain their aspect and content. */
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) div:is(.h-12,.h-14,.h-16,.h-20):has(> i) {
+    width: 40px !important; height: 40px !important; border-radius: 12px !important; flex-shrink: 0;
 }
-html:not(.dark) .uc-main-area :is(.bg-slate-950, .bg-slate-900, .bg-slate-800, .bg-gray-900, .bg-gray-800):not(.uc-page-hero *) {
-    background-color: #f1f5f9 !important;
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) div:has(> i) > i:is(.text-2xl,.text-3xl,.text-5xl) { font-size: 1.125rem !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) .mentor-avatar { width: 56px !important; height: 56px !important; border-radius: 15px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) .mentor-card .gap-4 { gap: 12px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) :is(a,button)[class*="py-3"],
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) :is(a,button)[class*="py-4"] {
+    padding-top: 10px !important; padding-bottom: 10px !important;
+    font-size: 13px !important; line-height: 1.4 !important; border-radius: 11px !important;
 }
-html:not(.dark) .uc-main-area :is(div, section)[class*="from-slate-9"]:not(.uc-page-hero *),
-html:not(.dark) .uc-main-area :is(div, section)[class*="from-indigo-9"]:not(.uc-page-hero *),
-html:not(.dark) .uc-main-area :is(div, section)[class*="from-purple-9"]:not(.uc-page-hero *) {
-    background: linear-gradient(135deg, #eef2ff, #f8fafc) !important;
-    border-color: #dbe3f0 !important;
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select)[class*="py-4"] {
+    padding-top: 10px !important; padding-bottom: 10px !important; min-height: 42px;
 }
-html:not(.dark) .uc-main-area .text-white:not(.uc-page-hero *) { color: #172033 !important; }
-html:not(.dark) .uc-main-area :is(.text-slate-100, .text-slate-200, .text-slate-300, .text-gray-200, .text-gray-300):not(.uc-page-hero *) {
-    color: #475569 !important;
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card).text-center:is(.p-8,.p-10,.p-12) { padding: 24px 16px !important; }
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) .donation-card div.h-32:has(> i) { height: 72px !important; border-radius: 12px !important; }
+/* Status text is more legible against the retained dark glass surfaces. */
+:is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) :is(.text-slate-500,.text-slate-600) { color: #94a3b8 !important; }
+@media(max-width:640px) {
+    :is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card,.event-card,.donate-card) { padding: 14px !important; }
+    :is(.uc-alumni-compact,.uc-student-compact,.uc-admin-compact,.uc-superadmin-compact) :is(.uc-card,.donation-card) :is(a,button)[class*="py-"] { min-height: 42px; }
 }
-html:not(.dark) .uc-main-area :is(.text-slate-400, .text-gray-400):not(.uc-page-hero *) { color: #64748b !important; }
-html:not(.dark) .uc-main-area :is(.text-cyan-300, .text-cyan-400):not(.uc-page-hero *) { color: #0e7490 !important; }
-html:not(.dark) .uc-main-area :is(.text-purple-300, .text-purple-400):not(.uc-page-hero *) { color: #7e22ce !important; }
-html:not(.dark) .uc-main-area :is(.text-blue-300, .text-blue-400, .text-indigo-300, .text-indigo-400):not(.uc-page-hero *) { color: #4338ca !important; }
-html:not(.dark) .uc-main-area :is(.text-emerald-300, .text-emerald-400, .text-green-300, .text-green-400):not(.uc-page-hero *) { color: #047857 !important; }
-html:not(.dark) .uc-main-area :is(.text-amber-300, .text-amber-400, .text-yellow-300, .text-yellow-400):not(.uc-page-hero *) { color: #92400e !important; }
-html:not(.dark) .uc-main-area :is(.text-pink-300, .text-pink-400, .text-rose-300, .text-rose-400):not(.uc-page-hero *) { color: #be185d !important; }
-html:not(.dark) .uc-main-area :is(.border-white\/10, .border-white\/20, .border-white\/5):not(.uc-page-hero *) { border-color: #dbe3f0 !important; }
-html:not(.dark) .uc-main-area :is(input:not([type=checkbox]):not([type=radio]), textarea, select) {
-    background-color: #fff !important; color: #172033 !important; border-color: #cbd5e1 !important;
-}
-html:not(.dark) .uc-main-area :is(input, textarea)::placeholder { color: #64748b !important; opacity: 1; }
-html:not(.dark) .uc-main-area :is(input, textarea, select):disabled { background-color: #e9eef5 !important; color: #475569 !important; }
-html:not(.dark) :is(.uc-meta-pill, .uc-filter-btn) { background: #eef2ff !important; border-color: #dbe3f0 !important; color: #475569; }
-html:not(.dark) .uc-filter-btn.is-active { background: #4338ca !important; color: #fff !important; }
-html:not(.dark) :is(.uc-action-btn, .uc-load-more) { color: #475569; }
-html:not(.dark) .uc-action-btn:hover { background: #eef2ff; color: #4338ca; }
-html:not(.dark) .uc-post-image { background: #f1f5f9; }
-/* Keep white labels on saturated controls and identity avatars. */
-html:not(.dark) .uc-main-area :is(button, a)[class*="bg-gradient-to"],
-html:not(.dark) .uc-main-area :is(button, a)[class*="bg-gradient-to"] *,
-html:not(.dark) .uc-main-area :is(.uc-avatar, .bg-indigo-600, .bg-purple-600, .bg-blue-600, .bg-cyan-600, .bg-red-600, .bg-red-700, .bg-green-600, .bg-green-700, .bg-emerald-600, .bg-amber-600),
-html:not(.dark) .uc-main-area :is(.uc-avatar, .bg-indigo-600, .bg-purple-600, .bg-blue-600, .bg-cyan-600, .bg-red-600, .bg-red-700, .bg-green-600, .bg-green-700, .bg-emerald-600, .bg-amber-600) * {
-    color: #fff !important;
-}
+
+/* Refined student panels and dashboard proportions. */
+
+.uc-student-compact :is(div,section,article,a)[class*="border"][class*="rounded"]:is(.p-5,.p-6,.p-7,.p-8) { padding: 14px !important; border-radius: 16px !important; }
+.uc-student-compact :is(.uc-card,.donation-card,.event-card,.donate-card) { padding: 14px !important; border-radius: 16px !important; }
+.uc-student-compact :is(.space-y-8,.space-y-7,.space-y-6) > :not([hidden]) ~ :not([hidden]) { margin-top: 14px !important; }
+.uc-student-compact .grid[class*="gap-"] { gap: 12px !important; }
+.uc-student-compact :is(.uc-card,.donation-card) :is(.mt-4,.mt-5,.mt-6,.mt-8) { margin-top: 10px !important; }
+.uc-student-compact .mentor-actions { padding-top: 10px; }
+.uc-student-compact .mentor-card :is(a,button) { padding-block: 8px !important; min-height: 38px; font-size: 12px !important; }
+.uc-student-compact .mentor-card .mentor-avatar { width: 48px !important; height: 48px !important; }
+.uc-student-compact .mentor-message { min-height: 60px; }
+.uc-student-dashboard > .grid:first-of-type > :is(a,div) { padding: 12px 14px !important; }
+.uc-student-dashboard > .grid:first-of-type :is(.text-3xl,.text-4xl) { font-size: 24px !important; line-height: 1.15; margin-top: 5px !important; }
+.uc-student-dashboard :is(.h-11,.h-12,.h-14,.h-16,.h-20):has(> i) { width: 34px !important; height: 34px !important; border-radius: 11px !important; flex-shrink: 0; }
+.uc-student-dashboard :is(.h-11,.h-12,.h-14,.h-16,.h-20) > i { font-size: 15px !important; }
+.uc-student-dashboard :is(h2,h3).text-2xl { font-size: 18px !important; line-height: 1.4; }
+.uc-student-dashboard :is(.mt-6,.mt-8) { margin-top: 14px !important; }
+.uc-student-dashboard :is(.mb-6,.mb-8) { margin-bottom: 14px !important; }
+.uc-student-dashboard .quick-action { display: grid; grid-template-columns: 34px minmax(0,1fr); column-gap: 10px; align-content: center; min-height: 80px; padding: 12px !important; }
+.uc-student-dashboard .quick-action > div { grid-row: 1 / 3; align-self: center; }
+.uc-student-dashboard .quick-action h4 { margin: 0 !important; font-size: 13px; line-height: 1.4; }
+.uc-student-dashboard .quick-action p { margin-top: 3px !important; font-size: 11px; line-height: 1.5; }
+.uc-student-compact :is(.uc-card,.donation-card).text-center:is(.p-8,.p-10,.p-12) { padding: 18px 14px !important; }
+@media(max-width:640px) { .uc-student-compact .mentor-card :is(a,button) { min-height: 42px; } }
+
+/* Refined alumni panels and dashboard proportions. */
+
+.uc-alumni-compact :is(div,section,article,a)[class*="border"][class*="rounded"]:is(.p-5,.p-6,.p-7,.p-8) { padding: 14px !important; border-radius: 16px !important; }
+.uc-alumni-compact :is(.uc-card,.donation-card,.event-card,.donate-card) { padding: 14px !important; border-radius: 16px !important; }
+.uc-alumni-compact :is(.space-y-8,.space-y-7,.space-y-6) > :not([hidden]) ~ :not([hidden]) { margin-top: 14px !important; }
+.uc-alumni-compact .grid[class*="gap-"] { gap: 12px !important; }
+.uc-alumni-compact :is(.uc-card,.donation-card) :is(.mt-4,.mt-5,.mt-6,.mt-8) { margin-top: 10px !important; }
+.uc-alumni-compact .mentor-actions { padding-top: 10px; }
+.uc-alumni-compact .mentor-card :is(a,button) { padding-block: 8px !important; min-height: 38px; font-size: 12px !important; }
+.uc-alumni-compact .mentor-card .mentor-avatar { width: 48px !important; height: 48px !important; }
+.uc-alumni-compact .mentor-message { min-height: 60px; }
+.uc-alumni-dashboard > .grid:first-of-type > :is(a,div) { padding: 12px 14px !important; }
+.uc-alumni-dashboard > .grid:first-of-type :is(.text-3xl,.text-4xl) { font-size: 24px !important; line-height: 1.15; margin-top: 5px !important; }
+.uc-alumni-dashboard :is(.h-11,.h-12,.h-14,.h-16,.h-20):has(> i) { width: 34px !important; height: 34px !important; border-radius: 11px !important; flex-shrink: 0; }
+.uc-alumni-dashboard :is(.h-11,.h-12,.h-14,.h-16,.h-20) > i { font-size: 15px !important; }
+.uc-alumni-dashboard :is(h2,h3).text-2xl { font-size: 18px !important; line-height: 1.4; }
+.uc-alumni-dashboard :is(.mt-6,.mt-8) { margin-top: 14px !important; }
+.uc-alumni-dashboard :is(.mb-6,.mb-8) { margin-bottom: 14px !important; }
+.uc-alumni-dashboard .quick-action { display: grid; grid-template-columns: 34px minmax(0,1fr); column-gap: 10px; align-content: center; min-height: 80px; padding: 12px !important; }
+.uc-alumni-dashboard .quick-action > div { grid-row: 1 / 3; align-self: center; }
+.uc-alumni-dashboard .quick-action h4 { margin: 0 !important; font-size: 13px; line-height: 1.4; }
+.uc-alumni-dashboard .quick-action p { margin-top: 3px !important; font-size: 11px; line-height: 1.5; }
+.uc-alumni-compact :is(.uc-card,.donation-card).text-center:is(.p-8,.p-10,.p-12) { padding: 18px 14px !important; }
+@media(max-width:640px) { .uc-alumni-compact .mentor-card :is(a,button) { min-height: 42px; } }
